@@ -26,7 +26,7 @@
 
 ---
 ### 3. 시스템 구성도
-
+![설계도](https://github.com/pnucse-capstone/capstone-2023-1-28/assets/57137757/832e8fb5-b036-49bd-98dc-fb38fca9eaef)
 
  * 효과적인 학습을 위해 먼저 UNet을 통해 Image Segmentation을 실시하여 불량을 검출할 용접부위를 추출합니다.
  * 추출된 이미지를 배겨응로 CutPaste를 사용하여 이상을 가진 이미지를 추가하여줍니다.
