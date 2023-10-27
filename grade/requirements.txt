@@ -1,0 +1,15 @@
+flask=2.2.2
+pymysql=1.1.0
+torch
+torchvision
+torchaudio
+	--index-url https://download.pytorch.org/whl/cu117
+tensorboard=2.10.0
+opencv=4.6.0
+numpy=1.26.0
+pandas
+scikit-learn
+seborn
+tdqm
+Flask-MySQL
+Flask-SQLAlchemy
