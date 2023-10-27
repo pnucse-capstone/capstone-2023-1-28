@@ -42,8 +42,11 @@
 
 ---
 **로컬에서 실행시**
+weight파일의 크기가 너무 커서 구글 드라이브를 통해 설치 후 checkpoint에 넣으시면 됩니다.<br>
+'''https://drive.google.com/drive/folders/1QdCFcnN_ZmeIpSOhmo2l0qMOW6KQlWje?usp=drive_link'''<br>
 아나콘다 가상환경 기준으로 설명드리겠습니다.<br>
 ```conda creat -n 파일명 python=3.10.14```<br>
 가상환경 생성 후 requirements.txt를 이용해 필요 라이브러리를 다운받습니다.<br>
 - ```pip install -r requirements.txt```<br>
 그 뒤 app.py를 실행시킨 후 127.0.0.1:5000에 접속합니다.
+
