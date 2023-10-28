@@ -77,9 +77,12 @@ def resize_and_save_as_npy(size_url):
 def preprocesse_image(size_url):
     input_dir = "static/uploads/" + size_url + '/'
     output_dir = "static/preprocessing/" + size_url + '/'
+    temp_dir = "static/temp/"
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
 
     input_files = os.listdir(input_dir)
     already_output_files = os.listdir(output_dir)   # 중복처리 방지용
@@ -107,13 +110,15 @@ def preprocesse_image(size_url):
             output_filename = f"{os.path.splitext(filename)[0]}_{i}.png"
             output_path = os.path.join(output_dir, output_filename)
             cv2.imwrite(output_path, cropped_image)
-        if size_url != 'big':       # big이미지만 어차피 전처리 되니까 이렇게 하자..
+        if size_url == 'big':       # big이미지만 어차피 전처리 되니까 이렇게 하자..
+            shutil.move(input_dir + filename, temp_dir)
+        else:
             os.remove(input_dir+filename)
 
 
 # 이미지 전처리 -- big만 가능하니까 그외에는 app.py에서 막기
 def different():
-    image_dir = "static/uploads/big"
+    image_dir = "static/temp"
     output_dir = "static/different"  # 이미지를 저장할 디렉토리 경로
 
     if not os.path.exists(output_dir):

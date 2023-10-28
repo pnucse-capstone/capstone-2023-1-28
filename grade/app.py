@@ -42,6 +42,10 @@ def predict(size_url):
     return jsonify(images)
 
 
+@app.route('/data_anal', methods=['GET'])
+def data_anal():
+    return render_template('data_anal.html')
+
 if __name__ == '__main__':
     app.run()
 

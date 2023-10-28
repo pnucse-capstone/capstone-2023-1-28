@@ -1,3 +1,5 @@
-from sys import version
+import os
+from PIL import Image
 
-print(version)
+input_dir = "static/preprocessing/middle"
+file_list = os.listdir(input_dir)

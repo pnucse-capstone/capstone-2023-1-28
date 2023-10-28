@@ -9,7 +9,7 @@ opencv=4.6.0
 numpy=1.26.0
 pandas
 scikit-learn
-seborn
-tdqm
+seaborn
+tqdm
 Flask-MySQL
 Flask-SQLAlchemy
