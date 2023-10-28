@@ -29,7 +29,8 @@ def main():
 
 @app.route('/predict/<size_url>', methods=['GET', 'POST'])
 def predict(size_url):
-    print("실행")
+    print("이미지 전처리 중")
+    func.preprocesse_image(size_url)
     print("이미지 npy로 변환중")
     func.resize_and_save_as_npy(size_url)
     print("모델 작업중")
@@ -47,13 +48,7 @@ if __name__ == '__main__':
 
 
 def model_run(size_url):
-    # 기타 설정
-    lr = 1e-3
-    # 수정ㅁㅁ
-    batch_size = 8
-    num_epoch = 100
-
-    data_dir = 'static/upload_numpy/' + size_url
+    data_dir = 'static/prepro_numpy/' + size_url
     ckpt_dir = './checkpoint/' + size_url
     result_dir = 'static/results/' + size_url
 
@@ -61,9 +56,14 @@ def model_run(size_url):
         os.makedirs(os.path.join(result_dir, 'png'))
         os.makedirs(os.path.join(result_dir, 'numpy'))
 
+    # 기타 설정
+    lr = 1e-3
+    # batch_size는 모델 돌아가는 애들 길이만큼 그냥 한번에 들고오기로 결정.
+    num_epoch = 100
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # uploads에 있는거 자동으로 들고옴 <-- 이것도 DB에서 갖고오는걸로 해야하나..? 근데 파일이 아니라 경로 그자체를 들고오는거라 좀 애매하네
+    # preprocessing에 있는거 자동으로 들고옴 <-- 이것도 DB에서 갖고오는걸로 해야하나..? 근데 파일이 아니라 경로 그자체를 들고오는거라 좀 애매하네
     transform = myUnet.transforms.Compose([myUnet.Normalization(mean=0.5, std=0.5), myUnet.ToTensor()])
 
     ## 이미 있는 경우 또 안하기 위해서
@@ -78,6 +78,7 @@ def model_run(size_url):
     print("처음 모델 돌리는애들 : ", filtered_input)
     if len(filtered_input) ==0: return
 
+    batch_size = len(filtered_input)
     dataset_test = myUnet.Dataset(data_dir=data_dir, transform=transform, lst_input=filtered_input)
     # 이거 원래 num_workers=8 (쓰레드 수)임
     loader_test = myUnet.DataLoader(dataset_test, batch_size=batch_size, shuffle=False, num_workers=0)

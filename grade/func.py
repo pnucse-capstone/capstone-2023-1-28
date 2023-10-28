@@ -1,5 +1,5 @@
 import os
-
+import shutil
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -37,8 +37,8 @@ def draw_contour(size_url, input_dict, output_dict):
 
 
 def resize_and_save_as_npy(size_url):
-    upload_image_dir = 'static/uploads/' + size_url + '/'
-    upload_output_dir = 'static/upload_numpy/' + size_url + '/'
+    upload_image_dir = 'static/preprocessing/' + size_url + '/'
+    upload_output_dir = 'static/prepro_numpy/' + size_url + '/'
 
     # upload 폴더에 있는 파일들 꺼내기
     upload_image_files = os.listdir(upload_image_dir)
@@ -74,3 +74,81 @@ def resize_and_save_as_npy(size_url):
         output_path = os.path.join(upload_output_dir, output_filename)
         np.save(output_path, new_img)
 
+def preprocesse_image(size_url):
+    input_dir = "static/uploads/" + size_url + '/'
+    output_dir = "static/preprocessing/" + size_url + '/'
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    input_files = os.listdir(input_dir)
+    already_output_files = os.listdir(output_dir)   # 중복처리 방지용
+
+    if size_url == 'small':
+        for filename in input_files:
+            src = input_dir + filename
+            des = output_dir + filename
+            shutil.move(src,des)
+        return
+
+    cut_width = 1000
+
+    for filename in input_files:
+        input_path = input_dir + filename
+        image = cv2.imread(input_path)
+
+        height, width, _ = image.shape
+
+        for i in range(0, width, cut_width):
+            start_x = i
+            end_x = min(i + cut_width, width)
+            cropped_image = image[:, start_x:end_x]
+
+            output_filename = f"{os.path.splitext(filename)[0]}_{i}.png"
+            output_path = os.path.join(output_dir, output_filename)
+            cv2.imwrite(output_path, cropped_image)
+        if size_url != 'big':       # big이미지만 어차피 전처리 되니까 이렇게 하자..
+            os.remove(input_dir+filename)
+
+
+# 이미지 전처리 -- big만 가능하니까 그외에는 app.py에서 막기
+def different():
+    image_dir = "static/uploads/big"
+    output_dir = "static/different"  # 이미지를 저장할 디렉토리 경로
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    for filename in os.listdir(image_dir):
+        image_path = os.path.join(image_dir, filename)
+        image = cv2.imread(image_path)
+        imgBW = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # 쓰레시홀드 범위, 작을수록 세분화해서 탐색, 클 수록 크게 탐색
+        ThreshRange = 801
+
+        imgThresh = cv2.adaptiveThreshold(imgBW, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,
+                                          ThreshRange, 0)
+
+        # 커널 크기, 작을 수록 선이 많아지고 클 수록 작아짐
+        Knum = 25
+
+        kernel = np.ones((Knum, Knum), np.uint8)
+
+        imgEro = cv2.erode(imgThresh, kernel, iterations=1)
+        imgDil = cv2.dilate(imgEro, kernel, iterations=1)
+
+        contours, hierarchy = cv2.findContours(imgDil, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        # 색 조정
+        setColor = (0, 255, 0)
+
+        for cnt in contours:
+            if cv2.contourArea(cnt) > 500:
+                cv2.drawContours(image, [cnt], -1, setColor, 3)
+        print("h")
+
+        # 이미지를 저장
+        output_filename = f"{os.path.splitext(filename)[0]}_processed.png"
+        output_path = os.path.join(output_dir, output_filename)
+        cv2.imwrite(output_path, image)
