@@ -47,6 +47,12 @@ def data_anal():
     images = func.check_for_new_files()
     return render_template('data_anal.html', images=images)
 
+
+@app.route('/prepro', methods=['POST'])
+def prepro():
+    images = func.different()
+    return jsonify(images)
+
 if __name__ == '__main__':
     app.run()
 

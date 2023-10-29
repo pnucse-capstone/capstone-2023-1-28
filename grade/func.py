@@ -118,13 +118,22 @@ def preprocesse_image(size_url):
 
 # 이미지 전처리 -- big만 가능하니까 그외에는 app.py에서 막기
 def different():
-    image_dir = "static/temp"
+    image_dir = "static/temp"       # 지워지니까 temp에 저장
     output_dir = "static/different"  # 이미지를 저장할 디렉토리 경로
+    answer = []
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     for filename in os.listdir(image_dir):
+        output_filename = f"{os.path.splitext(filename)[0]}_processed.png"
+        output_path = os.path.join(output_dir, output_filename)
+
+        # 중복방지
+        if output_filename in os.listdir(output_dir):
+            answer.append(output_path)
+            continue
+
         image_path = os.path.join(image_dir, filename)
         image = cv2.imread(image_path)
         imgBW = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -151,13 +160,13 @@ def different():
         for cnt in contours:
             if cv2.contourArea(cnt) > 500:
                 cv2.drawContours(image, [cnt], -1, setColor, 3)
-        print("h")
 
         # 이미지를 저장
-        output_filename = f"{os.path.splitext(filename)[0]}_processed.png"
-        output_path = os.path.join(output_dir, output_filename)
         cv2.imwrite(output_path, image)
+        answer.append(output_path)
 
+    print(answer)
+    return answer
 
 
 def check_for_new_files():
@@ -174,10 +183,13 @@ def check_for_new_files():
 
         new_files[key_folder] = []
 
-        if os.path.exists(input_folder) and os.path.exists(result_folder):
-            input_files = os.listdir(input_folder)
-            result_files = os.listdir(result_folder)
+        if not os.path.exists(input_folder):
+            os.makedirs(input_folder)
+        if not os.path.exists(result_folder):
+            os.makedirs(result_folder)
 
-            new_files[key_folder] = [file for file in input_files if file not in result_files]
+        input_files = os.listdir(input_folder)
+        result_files = os.listdir(result_folder)
 
+        new_files[key_folder] = [file for file in input_files if file not in result_files]
     return new_files

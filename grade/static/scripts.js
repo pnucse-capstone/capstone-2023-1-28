@@ -98,3 +98,65 @@ function showImages(button) {
     var imageContainer = button.parentElement.querySelector('.image-slide');
     imageContainer.classList.remove('hidden');
 }
+
+function prepro() {
+    var imagesToDisplay = [];  // 응답 이미지 배열
+    var currentIndex = 0;  // 현재 표시 중인 이미지의 인덱스
+    var inputImages = [];
+    var outputImages = [];
+
+    // 이미지 표시 타이머 중지
+    clearTimeout(imageDisplayTimer);
+
+    // /predict 라우트에 대한 AJAX 요청을 보냅니다.
+    $.ajax({
+        url: '/prepro',
+        method: 'POST',
+        success: function(response) {
+            imagesToDisplay = [];
+            currentIndex = 0;
+            // inputImages = [];
+            outputImages = [];
+
+            response.forEach(function(imagePath) {
+                imagePath = imagePath.replace(/\\/g, '/');
+                imagesToDisplay.push(imagePath);
+
+                outputImages.push(imagePath);
+
+                // if (imagePath.startsWith('static/results' + url_param + '/png/input_')) {
+                //     inputImages.push(imagePath);
+                // } else if (imagePath.startsWith('static/results' + url_param + '/png/output_')) {
+                //     outputImages.push(imagePath);
+                // }
+            });
+            console.log(outputImages)
+
+            // 이미지 표시
+            function displayImages() {
+                if (currentIndex < outputImages.length) {
+                    // var inputImage = document.createElement('img');
+                    var outputImage = document.createElement('img');
+
+                    // inputImage.src = inputImages[currentIndex];
+                    outputImage.src = outputImages[currentIndex];
+                    outputImage.style.width = '50%';
+                    outputImage.style.display = 'block'; // 블록 레벨 요소로 설정
+                    outputImage.style.margin = '0 auto'; // 가로 중앙 정렬
+
+                    // html 내부에 미리 정해놓은 id로 넣기.
+                    // $('#input_body').empty().append(inputImage);
+                    $('#prepro_area').empty().append(outputImage);
+                    currentIndex++;
+                }
+                // 4초 마다 refresh
+                if (currentIndex < outputImages.length) {
+                    imageDisplayTimer = setTimeout(displayImages, 4000);
+                }
+            }
+
+            // 이미지 표시
+            displayImages();
+        }
+    });
+}

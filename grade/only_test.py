@@ -1,5 +1,3 @@
-import os
-from PIL import Image
+import func
 
-input_dir = "static/preprocessing/middle"
-file_list = os.listdir(input_dir)
+func.different()
