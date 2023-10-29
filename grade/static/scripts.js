@@ -93,3 +93,8 @@ function updateProgressBar(percent) {
     const progressBar = document.getElementById('progress-bar');
     progressBar.style.width = percent + '%';
 }
+
+function showImages(button) {
+    var imageContainer = button.parentElement.querySelector('.image-slide');
+    imageContainer.classList.remove('hidden');
+}

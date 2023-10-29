@@ -157,3 +157,27 @@ def different():
         output_filename = f"{os.path.splitext(filename)[0]}_processed.png"
         output_path = os.path.join(output_dir, output_filename)
         cv2.imwrite(output_path, image)
+
+
+
+def check_for_new_files():
+    input_dir = 'static/uploads'
+    results_dir = 'static/results'
+
+    subfolders = ['small', 'middle', 'big']
+    new_files = {}
+
+    for folder in subfolders:
+        input_folder = os.path.join(input_dir, folder)
+        result_folder = os.path.join(os.path.join(results_dir, folder), 'png')
+        key_folder = 'uploads/' + folder + '/'
+
+        new_files[key_folder] = []
+
+        if os.path.exists(input_folder) and os.path.exists(result_folder):
+            input_files = os.listdir(input_folder)
+            result_files = os.listdir(result_folder)
+
+            new_files[key_folder] = [file for file in input_files if file not in result_files]
+
+    return new_files

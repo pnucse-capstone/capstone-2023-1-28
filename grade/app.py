@@ -44,7 +44,8 @@ def predict(size_url):
 
 @app.route('/data_anal', methods=['GET'])
 def data_anal():
-    return render_template('data_anal.html')
+    images = func.check_for_new_files()
+    return render_template('data_anal.html', images=images)
 
 if __name__ == '__main__':
     app.run()

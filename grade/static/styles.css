@@ -11241,3 +11241,20 @@ body {
   font-size: 0.75rem;
   border-radius: 0.375rem !important;
 }
+
+.image-container {
+    white-space: nowrap;
+    overflow-x: scroll;
+}
+
+.image-container img {
+    max-width: 700px; /* 최대 너비 설정 */
+    max-height: 700px; /* 최대 높이 설정 */
+    display: inline-block; /* 이미지를 가로로 나열하도록 설정 */
+    margin: 10px; /* 이미지 사이의 간격 설정 */
+}
+
+.hidden {
+    display: none;
+}
+
