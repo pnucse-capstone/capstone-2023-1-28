@@ -11,6 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
     <link href="./static/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+
 </head>
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
@@ -60,29 +61,35 @@
                         <ul>
                             <li>
                                 {% if files %}
-                                    {{ files|length }}개의 새로운 이미지가 있습니다.
+                                    {% set leng = files|length %}
+                                    {{ leng }}개의 새로운 이미지가 있습니다.
                                     <button onclick="showImages(this)" type="button" class="btn-primary" style="margin-bottom: 10px; border-radius: 12px">이미지 보기</button>
                                 {% else %}
                                     새로운 이미지가 없습니다.
                                 {% endif %}
-                                <div id="carouselExampleInterval{{ loop.index }}" class="hidden image-slide carousel slide w-50" data-bs-ride="carousel">
+                                <div id="carouselDiv{{ loop.index }}" class="hidden image-slide carousel slide carousel-fade w-50" data-bs-ride="carousel">
+                                    <div class="carousel-indicators">
+                                        {% set parent_loop = loop %}
+                                        {% for _ in range(leng) %}
+                                            <button type="button" data-bs-target="#carouselDiv{{ parent_loop.index }}" data-bs-slide-to="{{ loop.index }}" aria-label="Slide {{ loop.index }}" class="{% if loop.index == 1 %}active{% endif %}" aria-current="{% if loop.index == 1%}true{% endif %}"></button>
+                                        {% endfor %}
+                                    </div>
                                     <div class="carousel-inner">
                                         {% for file in files %}
                                             <div class="carousel-item {% if loop.index ==1 %}active{% endif %}" class="d-block w-50" alt="...">
-                                                <img src="{{ url_for('static', filename=folder  + file) }}" class="d-block w-50" alt="{{ file }}" >
+                                                <img src="{{ url_for('static', filename=folder  + file) }}" class="d-block w-100" alt="{{ file }}" >
                                             </div>
                                         {% endfor %}
                                     </div>
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselDiv{{ loop.index }}" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselDiv{{ loop.index }}" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" ariahidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
                                 </div>
-                {#                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleInterval{{ loop.index }}" data-bs-slide="prev" id="hello{{ loop.index }}">#}
-                {#                    <h1> carouselExampleInterval{{ loop.index }}</h1>#}
-                {#                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>#}
-                {#                    <span class="visually-hidden">Previous</span>#}
-                {#                </button>#}
-                {#                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleInterval{{ loop.index }}" data-bs-slide="next" id="hello{{ loop.index }}">#}
-                {#                    <span class="carousel-control-next-icon" aria-hidden="true"></span>#}
-                {#                    <span class="visually-hidden">Next</span>#}
-                {#                </button>#}
                             </li>
                         </ul>
                     {% endfor %}
