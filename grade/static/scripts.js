@@ -26,6 +26,24 @@ window.addEventListener('DOMContentLoaded', event => {
 
 });
 
+document.querySelectorAll('.dropdown-item').forEach(function (item) {
+    item.addEventListener('click', function () {
+        var selectedItemText = item.textContent;
+        document.getElementById('selectedItemText').textContent = selectedItemText;
+    });
+});
+
+// 인풋에 숫자 아니면 제거해뿌기
+document.getElementById("thresh").addEventListener("input", function (e) {
+    var inputValue = e.target.value;
+    e.target.value = inputValue.replace(/[^0-9]/g, "");
+});
+
+document.getElementById("kernel").addEventListener("input", function (e) {
+    var inputValue = e.target.value;
+    e.target.value = inputValue.replace(/[^0-9]/g, "");
+});
+
 var imageDisplayTimer;
 
 
@@ -96,12 +114,22 @@ function updateProgressBar(percent) {
 
 function showImages(button) {
     var imageContainer = button.parentElement.querySelector('.image-slide');
-    imageContainer.classList.remove('hidden');
+    if (imageContainer.classList.contains('hidden')) {
+        imageContainer.classList.remove('hidden');
+    } else {
+        imageContainer.classList.add('hidden');
+    }
 }
 
-function prepro() {
-    var imagesToDisplay = [];  // 응답 이미지 배열
-    var currentIndex = 0;  // 현재 표시 중인 이미지의 인덱스
+
+function different() {
+    var dropdown = document.getElementById("inputGroupSelect04");
+    var selectedValue = dropdown.options[dropdown.selectedIndex].value;        // 드롭박스 value
+    var threshValue = document.getElementById("thresh").value;
+    var kernelValue = document.getElementById("kernel").value;
+
+    var imagesToDisplay = [];
+    var currentIndex = 0;
     var inputImages = [];
     var outputImages = [];
 
@@ -112,6 +140,11 @@ function prepro() {
     $.ajax({
         url: '/prepro',
         method: 'POST',
+        data: {
+            selectValue: selectedValue,
+            threshValue: threshValue,
+            kernelValue: kernelValue
+        },
         success: function(response) {
             imagesToDisplay = [];
             currentIndex = 0;
@@ -160,3 +193,5 @@ function prepro() {
         }
     });
 }
+
+

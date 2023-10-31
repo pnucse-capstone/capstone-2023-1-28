@@ -39,67 +39,64 @@
                             <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                             데이터 분석
                         </a>
+                        <a class="nav-link" href="/detection">
+                            <div class="sb-nav-link-icon"><i class="fa-solid fa-server"></i></div>
+                            용접선 검출
+                        </a>
+                        <a class="nav-link" href="/anomal">
+                            <div class="sb-nav-link-icon"><i class="fa-solid fa-microchip"></i></div>
+                            Anomal Detection
+                        </a>
                     </div>
                 </div>
             </nav>
         </div>
         <div id="layoutSidenav_content">
             <main>
-                <div class="container-fluid px-4 mt-4">
-                    {% for folder, files in images.items() %}
-                        <h2>
-                            {% if folder == "uploads/small/" %}
-                                소형관
-                            {% elif folder == "uploads/middle/" %}
-                                중형관
-                            {% elif folder == "uploads/big/" %}
-                                대형관
-                            {% else %}
-                                {{ folder }}
-                            {% endif %}
-                        </h2>
-                        <ul>
-                            <li>
-                                {% if files %}
-                                    {% set leng = files|length %}
-                                    {{ leng }}개의 새로운 이미지가 있습니다.
-                                    <button onclick="showImages(this)" type="button" class="btn-primary" style="margin-bottom: 10px; border-radius: 12px">이미지 보기</button>
-                                {% else %}
-                                    새로운 이미지가 없습니다.
-                                {% endif %}
-                                <div id="carouselDiv{{ loop.index }}" class="hidden image-slide carousel slide carousel-fade w-50" data-bs-ride="carousel">
-                                    <div class="carousel-indicators">
-                                        {% set parent_loop = loop %}
-                                        {% for _ in range(leng) %}
-                                            <button type="button" data-bs-target="#carouselDiv{{ parent_loop.index }}" data-bs-slide-to="{{ loop.index }}" aria-label="Slide {{ loop.index }}" class="{% if loop.index == 1 %}active{% endif %}" aria-current="{% if loop.index == 1%}true{% endif %}"></button>
-                                        {% endfor %}
-                                    </div>
-                                    <div class="carousel-inner">
-                                        {% for file in files %}
-                                            <div class="carousel-item {% if loop.index ==1 %}active{% endif %}" class="d-block w-50" alt="...">
-                                                <img src="{{ url_for('static', filename=folder  + file) }}" class="d-block w-100" alt="{{ file }}" >
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselDiv{{ loop.index }}" data-bs-slide="prev">
-                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Previous</span>
-                                    </button>
-                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselDiv{{ loop.index }}" data-bs-slide="next">
-                                        <span class="carousel-control-next-icon" ariahidden="true"></span>
-                                        <span class="visually-hidden">Next</span>
-                                    </button>
-                                </div>
-                            </li>
-                        </ul>
-                    {% endfor %}
-                </div>
+                <div class="container-fluid px-4">
+                    <h1 class="mt-4">용접선 검출 전처리</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item active">실행할 전처리와 파라미터를 입력하시고 실행버튼을 눌러주세요.</li>
+                    </ol>
                 <div class="card mt-4 ms-4 mx-4">
+
+
+
                     <div class="card-header">
-                        <i class="fas fa-chart-area me-1"></i>
-                        전처리 기능
-                        <button type="button" class="btn-warning" style="border-radius: 12px" onclick="prepro()">실행</button>
+                        <div class="input-group">
+                            <select class="form-select-sm" id="inputGroupSelect04" aria-label="원하는 전처리를 클릭하세요.">
+                            <option selected>목록</option>
+                            <option value="thresh">쓰레시홀드</option>
+                            <option value="erode">이로딩</option>
+                            <option value="dilation">딜레이션</option>
+                            <option value="final">최종작업</option>
+                            </select>
+                            <input type="number" class="form-control" id="thresh" placeholder="임계값을 입력하세요. (기본값:801)">
+                            <input type="number" class="form-control" id="kernel" placeholder="커널수를 입력하세요. (기본값:23)">
+                            <button class="btn btn-warning" type="button" onclick="different()">실행</button>
+                        </div>
+{#                        <div class="d-flex align-items-center">#}
+{#                            <div class="dropdown">#}
+{#                                <button class="btn btn-sm btn-warning dropdown-toggle" type="button" style="border-radius: 12px" id="selectedItemText" data-bs-toggle="dropdown" aria-expanded="false">#}
+{#                                    전처리 목록#}
+{#                                </button>#}
+{#                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">#}
+{#                                    <li><a class="dropdown-item" href="#">쓰레시홀드조정</a></li>#}
+{#                                    <li><a class="dropdown-item" href="#">커널 조정</a></li>#}
+{#                                    <li><a class="dropdown-item" href="#">Something else here</a></li>#}
+{#                                </ul>#}
+{#                            </div>#}
+{#                            <div class="flex-fill">#}
+{#                                파라미터 입력#}
+{#                            </div>#}
+{#                            <div>#}
+{#                                <button type="button" class="btn-warning" style="border-radius: 12px" onclick="prepro()">실행</button>#}
+{#                            </div>#}
+{#                        </div>#}
                     </div>
+
+
+
                     <div class="card-body" id="prepro_area">
                         <!-- 이미지가 들어 올 공간 -->
                     </div>

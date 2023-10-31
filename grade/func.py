@@ -110,15 +110,16 @@ def preprocesse_image(size_url):
             output_filename = f"{os.path.splitext(filename)[0]}_{i}.png"
             output_path = os.path.join(output_dir, output_filename)
             cv2.imwrite(output_path, cropped_image)
-        if size_url == 'big':       # big이미지만 어차피 전처리 되니까 이렇게 하자..
-            shutil.move(input_dir + filename, temp_dir)
-        else:
-            os.remove(input_dir+filename)
+        # if size_url == 'big':                                 전처리 하는거 보여줄려고 이랬는데 굳이 하지말자
+        #     shutil.move(input_dir + filename, temp_dir)
+        # else:
+        os.remove(input_dir+filename)
 
 
 # 이미지 전처리 -- big만 가능하니까 그외에는 app.py에서 막기
-def different():
-    image_dir = "static/temp"       # 지워지니까 temp에 저장
+def different(selectValue, threshValue = 801, kernelValue = 23):
+    # thresh : 쓰레스홀드, erode : 이로딩, dilation : 딜레이션, final : 최종
+    image_dir = "static/uploads/big"        # 그냥 업로드에서 갖고오자 <-- 새로운 이미지들
     output_dir = "static/different"  # 이미지를 저장할 디렉토리 경로
     answer = []
 
@@ -126,7 +127,7 @@ def different():
         os.makedirs(output_dir)
 
     for filename in os.listdir(image_dir):
-        output_filename = f"{os.path.splitext(filename)[0]}_processed.png"
+        output_filename = f"{os.path.splitext(filename)[0]}_" + selectValue + '_' +threshValue + '_' + kernelValue + ".png"
         output_path = os.path.join(output_dir, output_filename)
 
         # 중복방지
@@ -136,21 +137,43 @@ def different():
 
         image_path = os.path.join(image_dir, filename)
         image = cv2.imread(image_path)
+
+        # 그레이스케일 (대형관과 중형관만)
         imgBW = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # 쓰레시홀드 범위, 작을수록 세분화해서 탐색, 클 수록 크게 탐색
-        ThreshRange = 801
+        # 쓰레시홀드 <-- 이거랑
+        ThreshRange = int(threshValue)
 
         imgThresh = cv2.adaptiveThreshold(imgBW, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,
                                           ThreshRange, 0)
 
+        # ThreshRange(thresh일때,) 랑 Knum 을 바꿔야해
+        if selectValue == "thresh":
+            cv2.imwrite(output_path,imgThresh)
+            answer.append(output_path)
+            continue
+
+
         # 커널 크기, 작을 수록 선이 많아지고 클 수록 작아짐
-        Knum = 25
+        Knum = int(kernelValue)
 
         kernel = np.ones((Knum, Knum), np.uint8)
 
+        # 이로딩연산 <-- 이거
         imgEro = cv2.erode(imgThresh, kernel, iterations=1)
+
+        if selectValue == 'erode':
+            cv2.imwrite(output_path,imgThresh)
+            answer.append(output_path)
+            continue
+
+        # 딜레이션 연산 <-- 이거
         imgDil = cv2.dilate(imgEro, kernel, iterations=1)
+
+        if selectValue == 'dilation':
+            cv2.imwrite(output_path,imgThresh)
+            answer.append(output_path)
+            continue
 
         contours, hierarchy = cv2.findContours(imgDil, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
@@ -161,11 +184,10 @@ def different():
             if cv2.contourArea(cnt) > 500:
                 cv2.drawContours(image, [cnt], -1, setColor, 3)
 
-        # 이미지를 저장
+        # 이거 까지
         cv2.imwrite(output_path, image)
         answer.append(output_path)
 
-    print(answer)
     return answer
 
 

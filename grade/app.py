@@ -3,12 +3,11 @@ import os
 import numpy as np
 import torch
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from matplotlib import pyplot as plt
 
 import func
 from flaskext.mysql import MySQL
-from flask import jsonify
 
 import myUnet
 
@@ -22,10 +21,35 @@ app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.secret_key = "ABCDEFG"
 mysql.init_app(app)
 
-
 @app.route('/', methods=['GET', 'POST'])
 def main():
-    return render_template('index.html')
+    images = func.check_for_new_files()
+    return render_template('index.html', images=images)
+
+@app.route('/data_anal', methods=['GET'])
+def data_anal():
+    images = func.check_for_new_files()
+    return render_template('data_anal.html', images=images)
+
+
+@app.route('/detection', methods=['GET','POST'])
+def detection():
+    return render_template('detection.html')
+
+@app.route('/prepro', methods=['POST'])
+def prepro():
+    selectValue = request.form.get('selectValue')
+    threshValue = request.form.get('threshValue')
+    kernelValue = request.form.get('kernelValue')
+
+    images = func.different(selectValue, threshValue, kernelValue)
+    return jsonify(images)
+
+
+@app.route('/anomal', methods=['GET','POST'])
+def anomal():
+    return render_template('detection.html')
+
 
 @app.route('/predict/<size_url>', methods=['GET', 'POST'])
 def predict(size_url):
@@ -41,17 +65,6 @@ def predict(size_url):
     # JSON으로 전송
     return jsonify(images)
 
-
-@app.route('/data_anal', methods=['GET'])
-def data_anal():
-    images = func.check_for_new_files()
-    return render_template('data_anal.html', images=images)
-
-
-@app.route('/prepro', methods=['POST'])
-def prepro():
-    images = func.different()
-    return jsonify(images)
 
 if __name__ == '__main__':
     app.run()

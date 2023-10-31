@@ -13,3 +13,7 @@ seaborn
 tqdm
 Flask-MySQL
 Flask-SQLAlchemy
+captum			#conda install -c pytorch captum
+easydict		#conda install -c conda-forge easydict
+
+
