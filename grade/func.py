@@ -55,11 +55,11 @@ def unet_model_run(size_url):
     ckpt_dir = './checkpoint/' + size_url
     result_dir = 'static/results/' + size_url
 
-    logging.INFO("모델 동작중")
+    logging.info("모델 동작중")
     if not os.path.exists(result_dir):
-        logging.INFO("폴더생성")
+        logging.info("폴더생성")
         os.makedirs(os.path.join(result_dir, 'png'))
-        logging.INFO("폴더생성2")
+        logging.info("폴더생성2")
         os.makedirs(os.path.join(result_dir, 'numpy'))
 
     # 기타 설정
@@ -349,12 +349,15 @@ def expand_img(size_url):
         os.makedirs(result_dir)
 
     # A 폴더와 B 폴더의 파일 목록 가져오기
-    png_files = [os.path.join(img_dir, filename) for filename in os.listdir(img_dir) if filename.endswith('.png')]
-    npy_files = [os.path.join(npy_dir, filename) for filename in os.listdir(npy_dir) if filename.endswith('.npy')]
+    png_files = [os.path.join(img_dir, filename) for filename in os.listdir(img_dir) if
+                 filename.endswith('.png') and filename.startswith('output_')]
+    npy_files = [os.path.join(npy_dir, filename) for filename in os.listdir(npy_dir) if
+                 filename.endswith('.npy') and filename.startswith('output_')]
 
     # 파일 목록을 정렬하여 순서대로 처리
     png_files.sort()
     npy_files.sort()
+
 
     # A 폴더와 B 폴더의 파일 목록을 동시에 처리
     for png_file, npy_file in zip(png_files, npy_files):
@@ -374,14 +377,14 @@ def expand_img(size_url):
         cv2.resize(welding_area, (512,512))
 
         # 결과 이미지를 투명한 PNG로 저장
-        #cv2.imwrite('용접부위_512x512.png', welding_area)
+        # cv2.imwrite('hello.png', welding_area)
 
         gray = cv2.cvtColor(welding_area, cv2.COLOR_BGR2GRAY)
         _, binary_mask = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
         binary_mask = 255 - binary_mask
 
         dst = cv2.inpaint(welding_area, binary_mask, 3, cv2.INPAINT_TELEA)
-        #cv2.imwrite('res.png', dst)
+        # cv2.imwrite('hello2.png', dst)
 
         welding_area = dst
 

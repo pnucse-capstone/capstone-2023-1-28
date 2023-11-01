@@ -33,11 +33,6 @@ def data_anal():
     images = func.check_for_new_files()
     return render_template('data_anal.html', images=images)
 
-
-@app.route('/detection', methods=['GET','POST'])
-def detection():
-    return render_template('detection.html')
-
 @app.route('/prepro', methods=['POST'])
 def prepro():
     selectValue = request.form.get('selectValue')
@@ -47,28 +42,34 @@ def prepro():
     images = func.different(selectValue, threshValue, kernelValue)
     return jsonify(images)
 
-
-@app.route('/anomal', methods=['GET','POST'])
-def anomal():
+@app.route('/detection', methods=['GET','POST'])
+def detection():
     return render_template('detection.html')
-
 
 @app.route('/predict/<size_url>', methods=['GET', 'POST'])
 def predict(size_url):
-    logging.INFO("전처리 작업중")
+    logging.info("전처리 작업중")
     func.preprocesse_image(size_url)
-    logging.INFO("이미지 npy로 변환중")
+    logging.info("이미지 npy로 변환중")
     func.resize_and_save_as_npy(size_url)
-    logging.INFO("UNet 모델 작업중")
+    logging.info("UNet 모델 작업중")
     func.unet_model_run(size_url)
-    logging.INFO("CutPaste ResNet 모델 작업중")
-
-    logging.INFO("DB에서 경로 받아오는 중")
+    logging.info("DB에서 경로 받아오는 중")
     images = import_img_db(size_url)
 
     # JSON으로 전송
     return jsonify(images)
 
+
+@app.route('/anomal', methods=['GET','POST'])
+def anomal():
+    return render_template('anomal.html')
+
+@app.route('/anomaly/<size_url>', methods=['GET', 'POST'])
+def anomal_detect(size_url):
+    func.expand_img(size_url)
+    run_cupaste_resnet.run(size_url)
+    return
 
 if __name__ == '__main__':
     app.run()
