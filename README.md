@@ -34,7 +34,7 @@
  
 ---
 ### 4. 소개 및 시연 영상
-[![2023년 전기 졸업 졸업과제 28 이지정의 필름쇼](https://github.com/pnucse-capstone/capstone-2023-1-28/assets/82069570/43fe2807-e874-4995-99d6-98c1331135fb)](https://youtu.be/clH3B_cBuLg?si=023pZLOXeYsrVO8p)
+[![2023년 전기 졸업 졸업과제 28 이지정의 필름쇼](https://github.com/pnucse-capstone/capstone-2023-1-28/assets/82069570/2d6f750c-a565-4cc0-8450-6bf6c41bf35d)](https://youtu.be/clH3B_cBuLg?si=023pZLOXeYsrVO8p)
 
 
 
