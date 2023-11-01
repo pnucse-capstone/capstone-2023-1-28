@@ -1,3 +1,3 @@
-import func
+import app
 
-func.different()
+app.import_img_db('small')

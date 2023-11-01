@@ -72,10 +72,7 @@
                                     {% set leng = files|length %}
                                     {{ leng }}개의 새로운 이미지가 있습니다.
                                     <button onclick="showImages(this)" type="button" class="btn-primary" style="margin-bottom: 10px; border-radius: 12px">이미지 보기</button>
-                                {% else %}
-                                    새로운 이미지가 없습니다.
-                                {% endif %}
-                                <div id="carouselDiv{{ loop.index }}" class="hidden image-slide carousel slide carousel-fade w-50" data-bs-ride="carousel" data-bs-interval="100000">
+                                    <div id="carouselDiv{{ loop.index }}" class="hidden image-slide carousel slide carousel-fade w-50" data-bs-ride="carousel" data-bs-interval="100000">
                                     <div class="carousel-indicators">
                                         {% set parent_loop = loop %}
                                         {% for _ in range(leng) %}
@@ -98,6 +95,9 @@
                                         <span class="visually-hidden">Next</span>
                                     </button>
                                 </div>
+                                {% else %}
+                                    새로운 이미지가 없습니다.
+                                {% endif %}
                             </li>
                         </ul>
                     {% endfor %}

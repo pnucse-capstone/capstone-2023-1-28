@@ -9,15 +9,22 @@ def draw_contour(size_url, input_dict, output_dict):
     # 여기도 중복처리 방지를 해야겠네,,, 아니면 한걸 또하네
     # 적용시켜줘야 하는 애들 이름을 넘겨줘서
     # 그안에 있으면 하는걸로 하자
-    result_dir = './static/results/' + size_url + '/png/'
+    input_dir = './static/results/' + size_url + '/png/'
+    result_dir = 'static/contour/' + size_url + '/png/'
     lst_input = list(input_dict.keys())
     lst_output = list(output_dict.keys())
 
-    for i in range(len(lst_input)):
-        original_image = cv2.imread(os.path.join(result_dir, lst_input[i]), cv2.IMREAD_GRAYSCALE)
+    answer_dict = dict()
 
-        # 마스크 이미지 열기
-        mask_image = cv2.imread(os.path.join(result_dir, lst_output[i]))
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+
+    for i in range(len(lst_input)):
+        # 여기서 갖고올 때, results에 있는 input_ 어쩌고를 갖고옴 <-- 근데 내 results 폴더가 바꼈으니 이것도 바꿔야함
+        original_image = cv2.imread(os.path.join(input_dir, lst_input[i]), cv2.IMREAD_GRAYSCALE)
+
+        # 여기서도 results에 있는 output_ 어쩌고를 갖고와야함
+        mask_image = cv2.imread(os.path.join(input_dir, lst_output[i]))
         gray_mask = cv2.cvtColor(mask_image, cv2.COLOR_BGR2GRAY)
 
         # 테두리 추출
@@ -32,7 +39,12 @@ def draw_contour(size_url, input_dict, output_dict):
         cv2.drawContours(original_image_color, contours, -1, border_color, thickness=2)
 
         # 이미지를 그레이스케일로 저장 (cmap=gray)
-        plt.imsave(os.path.join(result_dir,lst_output[i]), original_image_color, cmap='gray')
+        plt.imsave(os.path.join(result_dir + lst_output[i]), original_image_color, cmap='gray')
+        answer_dict[lst_output[i]] = result_dir
+
+    answer_lst = []
+    answer_lst.append(answer_dict)
+    return answer_lst
 
 
 
@@ -40,14 +52,15 @@ def resize_and_save_as_npy(size_url):
     upload_image_dir = 'static/preprocessing/' + size_url + '/'
     upload_output_dir = 'static/prepro_numpy/' + size_url + '/'
 
+    if not os.path.exists(upload_output_dir):
+        os.makedirs(upload_output_dir)
+
     # upload 폴더에 있는 파일들 꺼내기
     upload_image_files = os.listdir(upload_image_dir)
     already_output_files = os.listdir(upload_output_dir)
 
     resize_size = (512, 512)
 
-    if not os.path.exists(upload_output_dir):
-        os.makedirs(upload_output_dir)
 
     for filename in upload_image_files:
         input_path = os.path.join(upload_image_dir, filename)
@@ -81,8 +94,8 @@ def preprocesse_image(size_url):
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
+    # if not os.path.exists(temp_dir):
+    #     os.makedirs(temp_dir)
 
     input_files = os.listdir(input_dir)
     already_output_files = os.listdir(output_dir)   # 중복처리 방지용

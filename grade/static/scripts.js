@@ -76,7 +76,7 @@ function predict(url_param) {
                 // input과 output 이미지를 분류합니다.
                 if (imagePath.startsWith('static/results' + url_param + '/png/input_')) {
                     inputImages.push(imagePath);
-                } else if (imagePath.startsWith('static/results' + url_param + '/png/output_')) {
+                } else if (imagePath.startsWith('static/contour' + url_param + '/png/output_')) {
                     outputImages.push(imagePath);
                 }
             });

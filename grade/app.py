@@ -155,14 +155,19 @@ def model_run(size_url):
 
                 output_dict[output_png_name] = 'static/results/' + size_url + '/png/'
                 input_dict[input_png_name] = 'static/results/' + size_url + '/png/'
-    func.draw_contour(size_url, input_dict, output_dict)
+    # 이거 내부에서 contour한거 저장하는게 필요해
+    contour_lst = func.draw_contour(size_url, input_dict, output_dict)
     output_lst = []
     input_lst = []
 
-    output_lst.append(output_dict)
+    # output_lst.append(output_dict)
     input_lst.append(input_dict)
-    insert_db(output_lst, size_url, 'outputs')
+
+    # 수정필요 images, outputs <-- contour한거 , results <-- 결과...
+    # insert_db(output_lst, size_url, 'outputs')
     insert_db(input_lst, size_url, 'images')
+    insert_db(contour_lst, size_url, 'outputs')
+    # insert_db(contour_lst, size_url, 'contours')
 
 def insert_db(lst, size_url, table):
     tableName = table
@@ -215,7 +220,7 @@ def import_img_db(size_url):
         images.append(input_item[0])
         images.append(output_item[0])
 
-
+    print(images)
     # for image_dir in output_dirs:
     #     images.append(image_dir[0])
     #
