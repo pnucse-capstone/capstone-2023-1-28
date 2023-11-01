@@ -34,7 +34,7 @@
  
 ---
 ### 4. 소개 및 시연 영상
-
+[![2023년 전기 졸업과제 28 이지정의 필름쇼](http://img.youtube.com/vi/zh_gQ_lmLqE/0.jpg)]([https://www.youtube.com/watch?v=zh_gQ_lmLqE](https://youtu.be/clH3B_cBuLg?si=XvJCf4ts2lahc5zh))
 추후 업데이트 예정
 
 ---
