@@ -1,3 +1,4 @@
+import logging
 import os
 
 import numpy as np
@@ -10,6 +11,7 @@ import func
 from flaskext.mysql import MySQL
 
 import myUnet
+from cutpaste import run_cupaste_resnet
 
 mysql = MySQL()
 app = Flask(__name__)
@@ -53,13 +55,15 @@ def anomal():
 
 @app.route('/predict/<size_url>', methods=['GET', 'POST'])
 def predict(size_url):
-    print("이미지 전처리 중")
+    logging.INFO("전처리 작업중")
     func.preprocesse_image(size_url)
-    print("이미지 npy로 변환중")
+    logging.INFO("이미지 npy로 변환중")
     func.resize_and_save_as_npy(size_url)
-    print("모델 작업중")
-    func.model_run(size_url)
-    print("DB에서 경로 받아오는중")
+    logging.INFO("UNet 모델 작업중")
+    func.unet_model_run(size_url)
+    logging.INFO("CutPaste ResNet 모델 작업중")
+
+    logging.INFO("DB에서 경로 받아오는 중")
     images = import_img_db(size_url)
 
     # JSON으로 전송

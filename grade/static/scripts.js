@@ -128,6 +128,15 @@ function different() {
     var threshValue = document.getElementById("thresh").value;
     var kernelValue = document.getElementById("kernel").value;
 
+    if (threshValue === "") {
+        threshValue = 801;
+    }
+    if (kernelValue === "") {
+        kernelValue = 23;
+    }
+
+
+
     var imagesToDisplay = [];
     var currentIndex = 0;
     var inputImages = [];

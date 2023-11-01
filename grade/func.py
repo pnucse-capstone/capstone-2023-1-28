@@ -8,7 +8,49 @@ import app
 import torch
 import myUnet
 
-def model_run(size_url):
+def preprocesse_image(size_url):
+    input_dir = "static/uploads/" + size_url + '/'
+    result_dir = "static/preprocessing/" + size_url + '/'
+    temp_dir = "static/temp/"
+
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    # if not os.path.exists(temp_dir):
+    #     os.makedirs(temp_dir)
+
+    input_files = os.listdir(input_dir)
+    already_output_files = os.listdir(result_dir)   # 중복처리 방지용
+
+    if size_url == 'small':
+        for filename in input_files:
+            src = input_dir + filename
+            des = result_dir + filename
+            shutil.move(src,des)
+        return
+
+    cut_width = 1000
+
+    for filename in input_files:
+        input_path = input_dir + filename
+        image = cv2.imread(input_path)
+
+        height, width, _ = image.shape
+
+        for i in range(0, width, cut_width):
+            start_x = i
+            end_x = min(i + cut_width, width)
+            cropped_image = image[:, start_x:end_x]
+
+            output_filename = f"{os.path.splitext(filename)[0]}_{i}.png"
+            output_path = os.path.join(result_dir, output_filename)
+            cv2.imwrite(output_path, cropped_image)
+        # if size_url == 'big':                                 전처리 하는거 보여줄려고 이랬는데 굳이 하지말자
+        #     shutil.move(input_dir + filename, temp_dir)
+        # else:
+        # os.remove(input_dir+filename)             #1 수정
+
+
+def unet_model_run(size_url):
     data_dir = 'static/prepro_numpy/' + size_url
     ckpt_dir = './checkpoint/' + size_url
     result_dir = 'static/results/' + size_url
@@ -109,6 +151,46 @@ def model_run(size_url):
     app.insert_db(contour_lst, size_url, 'outputs')
     # insert_db(contour_lst, size_url, 'contours')
 
+def resize_and_save_as_npy(size_url):
+    upload_image_dir = 'static/preprocessing/' + size_url + '/'
+    upload_output_dir = 'static/prepro_numpy/' + size_url + '/'
+
+    if not os.path.exists(upload_output_dir):
+        os.makedirs(upload_output_dir)
+
+    # upload 폴더에 있는 파일들 꺼내기
+    upload_image_files = os.listdir(upload_image_dir)
+    already_output_files = os.listdir(upload_output_dir)
+
+    resize_size = (512, 512)
+
+
+    for filename in upload_image_files:
+        input_path = os.path.join(upload_image_dir, filename)
+
+        # 중복처리 방지
+        output_filename = 'input_' + os.path.splitext(filename)[0] + '.npy'
+        if output_filename in already_output_files:
+            continue
+
+        image = cv2.imread(input_path, flags=cv2.IMREAD_UNCHANGED)
+
+        if size_url != 'small':
+            # 이미지를 그레이스케일로 변환
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        w = image.shape[0]
+        h = image.shape[1]
+
+        print(w, h)
+        new_img = cv2.resize(image, resize_size, interpolation=cv2.INTER_AREA)
+
+        # .npy로 저장
+        output_filename = 'input_' + os.path.splitext(filename)[0] + '.npy'
+        output_path = os.path.join(upload_output_dir, output_filename)
+        np.save(output_path, new_img)
+
+
 def draw_contour(size_url, input_dict, output_dict):
     # 여기도 중복처리 방지를 해야겠네,,, 아니면 한걸 또하네
     # 적용시켜줘야 하는 애들 이름을 넘겨줘서
@@ -153,103 +235,52 @@ def draw_contour(size_url, input_dict, output_dict):
 
 
 
-def resize_and_save_as_npy(size_url):
-    upload_image_dir = 'static/preprocessing/' + size_url + '/'
-    upload_output_dir = 'static/prepro_numpy/' + size_url + '/'
-
-    if not os.path.exists(upload_output_dir):
-        os.makedirs(upload_output_dir)
-
-    # upload 폴더에 있는 파일들 꺼내기
-    upload_image_files = os.listdir(upload_image_dir)
-    already_output_files = os.listdir(upload_output_dir)
-
-    resize_size = (512, 512)
 
 
-    for filename in upload_image_files:
-        input_path = os.path.join(upload_image_dir, filename)
 
-        # 중복처리 방지
-        output_filename = 'input_' + os.path.splitext(filename)[0] + '.npy'
-        if output_filename in already_output_files:
-            continue
+def check_for_new_files():
+    input_dir = 'static/uploads'
+    results_dir = 'static/results'
 
-        image = cv2.imread(input_path, flags=cv2.IMREAD_UNCHANGED)
+    subfolders = ['small', 'middle', 'big']
+    new_files = {}
 
-        if size_url != 'small':
-            # 이미지를 그레이스케일로 변환
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    for folder in subfolders:
+        input_folder = os.path.join(input_dir, folder)
+        result_folder = os.path.join(os.path.join(results_dir, folder), 'png')
+        key_folder = 'uploads/' + folder + '/'
 
-        w = image.shape[0]
-        h = image.shape[1]
+        new_files[key_folder] = []
 
-        print(w, h)
-        new_img = cv2.resize(image, resize_size, interpolation=cv2.INTER_AREA)
+        if not os.path.exists(input_folder):
+            os.makedirs(input_folder)
+        if not os.path.exists(result_folder):
+            os.makedirs(result_folder)
 
-        # .npy로 저장
-        output_filename = 'input_' + os.path.splitext(filename)[0] + '.npy'
-        output_path = os.path.join(upload_output_dir, output_filename)
-        np.save(output_path, new_img)
+        input_files = os.listdir(input_folder)
+        result_files = os.listdir(result_folder)
 
-def preprocesse_image(size_url):
-    input_dir = "static/uploads/" + size_url + '/'
-    output_dir = "static/preprocessing/" + size_url + '/'
-    temp_dir = "static/temp/"
+        new_files[key_folder] = [file for file in input_files if file not in result_files]
+    return new_files
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    # if not os.path.exists(temp_dir):
-    #     os.makedirs(temp_dir)
-
-    input_files = os.listdir(input_dir)
-    already_output_files = os.listdir(output_dir)   # 중복처리 방지용
-
-    if size_url == 'small':
-        for filename in input_files:
-            src = input_dir + filename
-            des = output_dir + filename
-            shutil.move(src,des)
-        return
-
-    cut_width = 1000
-
-    for filename in input_files:
-        input_path = input_dir + filename
-        image = cv2.imread(input_path)
-
-        height, width, _ = image.shape
-
-        for i in range(0, width, cut_width):
-            start_x = i
-            end_x = min(i + cut_width, width)
-            cropped_image = image[:, start_x:end_x]
-
-            output_filename = f"{os.path.splitext(filename)[0]}_{i}.png"
-            output_path = os.path.join(output_dir, output_filename)
-            cv2.imwrite(output_path, cropped_image)
-        # if size_url == 'big':                                 전처리 하는거 보여줄려고 이랬는데 굳이 하지말자
-        #     shutil.move(input_dir + filename, temp_dir)
-        # else:
-        # os.remove(input_dir+filename)             #1 수정
 
 
 # 이미지 전처리 -- big만 가능하니까 그외에는 app.py에서 막기
 def different(selectValue, threshValue = 801, kernelValue = 23):
     # thresh : 쓰레스홀드, erode : 이로딩, dilation : 딜레이션, final : 최종
-    image_dir = "static/uploads/big"        # 그냥 업로드에서 갖고오자 <-- 새로운 이미지들
-    output_dir = "static/different"  # 이미지를 저장할 디렉토리 경로
+    image_dir = "static/uploads/big"        # 새로운 이미지 올라온거
+    result_dir = "static/different"  # 이미지를 저장할 디렉토리 경로
     answer = []
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
 
     for filename in os.listdir(image_dir):
         output_filename = f"{os.path.splitext(filename)[0]}_" + selectValue + '_' +threshValue + '_' + kernelValue + ".png"
-        output_path = os.path.join(output_dir, output_filename)
+        output_path = os.path.join(result_dir, output_filename)
 
         # 중복방지
-        if output_filename in os.listdir(output_dir):
+        if output_filename in os.listdir(result_dir):
             answer.append(output_path)
             continue
 
@@ -309,27 +340,64 @@ def different(selectValue, threshValue = 801, kernelValue = 23):
     return answer
 
 
-def check_for_new_files():
-    input_dir = 'static/uploads'
-    results_dir = 'static/results'
+def expand_img(size_url):
+    img_dir = './static/results/' + size_url + '/png'  # img
+    npy_dir = './static/results/' + size_url + '/numpy'  # numpy
+    result_dir = './static/cutpaste/datasets/' + size_url
 
-    subfolders = ['small', 'middle', 'big']
-    new_files = {}
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
 
-    for folder in subfolders:
-        input_folder = os.path.join(input_dir, folder)
-        result_folder = os.path.join(os.path.join(results_dir, folder), 'png')
-        key_folder = 'uploads/' + folder + '/'
+    # A 폴더와 B 폴더의 파일 목록 가져오기
+    png_files = [os.path.join(img_dir, filename) for filename in os.listdir(img_dir) if filename.endswith('.png')]
+    npy_files = [os.path.join(npy_dir, filename) for filename in os.listdir(npy_dir) if filename.endswith('.npy')]
 
-        new_files[key_folder] = []
+    # 파일 목록을 정렬하여 순서대로 처리
+    png_files.sort()
+    npy_files.sort()
 
-        if not os.path.exists(input_folder):
-            os.makedirs(input_folder)
-        if not os.path.exists(result_folder):
-            os.makedirs(result_folder)
+    # A 폴더와 B 폴더의 파일 목록을 동시에 처리
+    for png_file, npy_file in zip(png_files, npy_files):
+        mask = np.load(npy_file)
 
-        input_files = os.listdir(input_folder)
-        result_files = os.listdir(result_folder)
+        # 원본 이미지 로드 (PNG 형식)
+        original_image = cv2.imread(png_file, cv2.IMREAD_COLOR)  # UNCHANGED 플래그를 사용하여 투명도 정보를 유지
 
-        new_files[key_folder] = [file for file in input_files if file not in result_files]
-    return new_files
+        # 마스크와 원본 이미지의 형태 일치시키기
+        if mask.shape[:2] != original_image.shape[:2]:
+            mask = cv2.resize(mask, (original_image.shape[1], original_image.shape[0]), interpolation=cv2.INTER_NEAREST)
+
+        # 마스크를 사용하여 원본 이미지에서 용접 부위를 추출
+        welding_area = original_image.copy()
+        welding_area[mask == 1] = 0
+
+        cv2.resize(welding_area, (512,512))
+
+        # 결과 이미지를 투명한 PNG로 저장
+        #cv2.imwrite('용접부위_512x512.png', welding_area)
+
+        gray = cv2.cvtColor(welding_area, cv2.COLOR_BGR2GRAY)
+        _, binary_mask = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
+        binary_mask = 255 - binary_mask
+
+        dst = cv2.inpaint(welding_area, binary_mask, 3, cv2.INPAINT_TELEA)
+        #cv2.imwrite('res.png', dst)
+
+        welding_area = dst
+
+        row_indices, col_indices = np.where(mask == 0)
+
+        # 좌표를 사용하여 최소한의 직사각형을 구함
+        min_row, max_row = min(row_indices), max(row_indices)
+        min_col, max_col = min(col_indices), max(col_indices)
+
+        # 최소한의 직사각형을 사용하여 용접 부위 잘라내기
+        extracted_area = welding_area[min_row:max_row + 1, min_col:max_col + 1]
+        extracted_area = cv2.resize(extracted_area, (512,512))
+
+        # 결과 이미지 저장
+        #cv2.imwrite('용접부위만_512x512.png', extracted_area)
+
+        result_filename = os.path.basename(png_file)
+        output_path = os.path.join(result_dir, result_filename)
+        cv2.imwrite(output_path, extracted_area)
