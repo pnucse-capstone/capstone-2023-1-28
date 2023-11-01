@@ -4,17 +4,23 @@ from flask_sqlalchemy import SQLAlchemy
 
 mysql = MySQL()
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1004@localhost/my_grade'  # MySQL 연결 정보를 입력하세요
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1004@localhost/my_grade'
 db = SQLAlchemy(app)
 
 
-class Image(db.Model):
+class Images(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     size = db.Column(db.String(255), nullable=False)
     image_name = db.Column(db.String(255), nullable=False, unique=True)
     image_dir = db.Column(db.String(255), nullable=False)
 
-class Output(db.Model):
+class Outputs(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    size = db.Column(db.String(255), nullable=False)
+    image_name = db.Column(db.String(255), nullable=False, unique=True)
+    image_dir = db.Column(db.String(255), nullable=False)
+
+class Contours(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     size = db.Column(db.String(255), nullable=False)
     image_name = db.Column(db.String(255), nullable=False, unique=True)

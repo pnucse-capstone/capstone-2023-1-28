@@ -1,3 +1,4 @@
+import logging
 import os
 
 import numpy as np
@@ -10,6 +11,7 @@ import func
 from flaskext.mysql import MySQL
 
 import myUnet
+from cutpaste import run_cupaste_resnet
 
 mysql = MySQL()
 app = Flask(__name__)
@@ -31,11 +33,6 @@ def data_anal():
     images = func.check_for_new_files()
     return render_template('data_anal.html', images=images)
 
-
-@app.route('/detection', methods=['GET','POST'])
-def detection():
-    return render_template('detection.html')
-
 @app.route('/prepro', methods=['POST'])
 def prepro():
     selectValue = request.form.get('selectValue')
@@ -45,124 +42,41 @@ def prepro():
     images = func.different(selectValue, threshValue, kernelValue)
     return jsonify(images)
 
-
-@app.route('/anomal', methods=['GET','POST'])
-def anomal():
+@app.route('/detection', methods=['GET','POST'])
+def detection():
     return render_template('detection.html')
-
 
 @app.route('/predict/<size_url>', methods=['GET', 'POST'])
 def predict(size_url):
-    print("이미지 전처리 중")
+    logging.info("전처리 작업중")
     func.preprocesse_image(size_url)
-    print("이미지 npy로 변환중")
+    logging.info("이미지 npy로 변환중")
     func.resize_and_save_as_npy(size_url)
-    print("모델 작업중")
-    model_run(size_url)
-    print("DB에서 경로 받아오는중")
+    logging.info("UNet 모델 작업중")
+    func.unet_model_run(size_url)
+    logging.info("DB에서 경로 받아오는 중")
     images = import_img_db(size_url)
 
     # JSON으로 전송
     return jsonify(images)
 
 
+@app.route('/anomal', methods=['GET','POST'])
+def anomal():
+    return render_template('anomal.html')
+
+@app.route('/anomaly/<size_url>', methods=['GET', 'POST'])
+def anomal_detect(size_url):
+    func.expand_img(size_url)
+    run_cupaste_resnet.run(size_url)
+    return
+
 if __name__ == '__main__':
     app.run()
 
 
 
-def model_run(size_url):
-    data_dir = 'static/prepro_numpy/' + size_url
-    ckpt_dir = './checkpoint/' + size_url
-    result_dir = 'static/results/' + size_url
 
-    if not os.path.exists(result_dir):
-        os.makedirs(os.path.join(result_dir, 'png'))
-        os.makedirs(os.path.join(result_dir, 'numpy'))
-
-    # 기타 설정
-    lr = 1e-3
-    # batch_size는 모델 돌아가는 애들 길이만큼 그냥 한번에 들고오기로 결정.
-    num_epoch = 100
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # preprocessing에 있는거 자동으로 들고옴 <-- 이것도 DB에서 갖고오는걸로 해야하나..? 근데 파일이 아니라 경로 그자체를 들고오는거라 좀 애매하네
-    transform = myUnet.transforms.Compose([myUnet.Normalization(mean=0.5, std=0.5), myUnet.ToTensor()])
-
-    ## 이미 있는 경우 또 안하기 위해서
-    lst_input = os.listdir(data_dir)
-    filtered_input = []
-    file_path = 'static/results/' + size_url + '/numpy/'
-    for filename in lst_input:
-        if not os.path.exists(file_path + filename):
-            filtered_input.append(filename)
-    # filtered_input에 이제 이름이 담기는데 이 이름으로 저장을 해야지 곂친거 또 안함
-    # 만약에 같은 이름의 파일을 또 저장한다하면 uuid써야하는데 거기까진 구현하지말자.
-    print("처음 모델 돌리는애들 : ", filtered_input)
-    if len(filtered_input) ==0: return
-
-    batch_size = len(filtered_input)
-    dataset_test = myUnet.Dataset(data_dir=data_dir, transform=transform, lst_input=filtered_input)
-    # 이거 원래 num_workers=8 (쓰레드 수)임
-    loader_test = myUnet.DataLoader(dataset_test, batch_size=batch_size, shuffle=False, num_workers=0)
-
-    net = myUnet.UNet().to(device)
-    optim = torch.optim.Adam(net.parameters(), lr=lr)
-
-    num_data_test = len(dataset_test)
-    num_batch_test = np.ceil(num_data_test / batch_size)
-
-    # tensor --> numpy
-    fn_tonumpy = lambda x: x.to('cpu').detach().numpy().transpose(0, 2, 3, 1)
-    # 정규화 해제
-    fn_denorm = lambda x, mean, std: (x * std) + mean
-    # 아웃풋 이미지를 바이너리 클래스로 분류해주는거
-    fn_class = lambda x: 1.0 * (x > 0.5)
-
-
-    st_epoch = 0
-    # 저장한 모델로드
-    net, optim, st_epoch = myUnet.load(ckpt_dir=ckpt_dir, net=net, optim=optim)
-    output_dict = dict()
-    input_dict = dict()
-    ## 모델 예측
-    with torch.no_grad():
-        net.eval()
-
-        for batch, data in enumerate(loader_test, 1):
-            # forward pass
-            input = data['input'].to(device)
-
-            output = net(input)
-
-            # Tensorboard 저장하기
-            input = fn_tonumpy(fn_denorm(input, mean=0.5, std=0.5))
-            output = fn_tonumpy(fn_class(output))
-
-            for j in range(input.shape[0]):
-                input_np_name = filtered_input[j]
-                output_np_name = filtered_input[j].replace('input_', 'output_')
-                input_png_name = filtered_input[j].replace('.npy','.png')
-                output_png_name = output_np_name.replace('.npy','.png')
-
-                # 나머지도 바꿔야하면 바꾸는데 굳이? 싶긴해 --> 아니 바꿔야해... 그래야 안곂쳐....
-                # UUID 처리해주는게 제일 좋긴함
-                plt.imsave(os.path.join(result_dir, 'png', input_png_name), input[j].squeeze(), cmap='gray')
-                plt.imsave(os.path.join(result_dir, 'png', output_png_name), output[j].squeeze(), cmap='gray')
-                np.save(os.path.join(result_dir, 'numpy', input_np_name), input[j].squeeze())
-                np.save(os.path.join(result_dir, 'numpy', output_np_name), output[j].squeeze())
-
-                output_dict[output_png_name] = 'static/results/' + size_url + '/png/'
-                input_dict[input_png_name] = 'static/results/' + size_url + '/png/'
-    func.draw_contour(size_url, input_dict, output_dict)
-    output_lst = []
-    input_lst = []
-
-    output_lst.append(output_dict)
-    input_lst.append(input_dict)
-    insert_db(output_lst, size_url, 'outputs')
-    insert_db(input_lst, size_url, 'images')
 
 def insert_db(lst, size_url, table):
     tableName = table
@@ -215,7 +129,7 @@ def import_img_db(size_url):
         images.append(input_item[0])
         images.append(output_item[0])
 
-
+    print(images)
     # for image_dir in output_dirs:
     #     images.append(image_dir[0])
     #
