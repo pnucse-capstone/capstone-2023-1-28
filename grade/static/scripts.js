@@ -44,6 +44,11 @@ document.getElementById("kernel").addEventListener("input", function (e) {
     e.target.value = inputValue.replace(/[^0-9]/g, "");
 });
 
+function changeCursor() {
+    document.querySelector('[value]').style.cursor = 'pointer';
+}
+
+
 var imageDisplayTimer;
 
 function showImages(button) {
@@ -212,6 +217,9 @@ function anomaly_detect(url_param) {
     var outputImages = [];
     var inputDir = 'static/cutpaste/datasets' + url_param + '/';
     var outputDir = 'static/cutpaste/results' + url_param + '/';
+    var tList = document.getElementById('datatablesSimple');
+    var tBody = tList.getElementsByTagName('tbody')[0]
+
 
     // 이미지 표시 타이머 중지
     clearTimeout(imageDisplayTimer);
@@ -227,18 +235,63 @@ function anomaly_detect(url_param) {
             inputImages = [];
             outputImages = [];
 
+            function addList(filename, isNormal, url_param){
+                var newRow = document.createElement('tr');
+                var nameCell = document.createElement("td");
+                var sizeCell = document.createElement("td");
+                var anomalCell = document.createElement("td");
+                var checkCell = document.createElement("td");
+                var imgLink = document.createElement('div');
+                var size = '';
+
+
+                nameCell.textContent = filename;
+                if( isNormal == 1 ){
+                    isNormal = "정상";
+                }else {
+                    isNormal = "비정상";
+                }
+                anomalCell.textContent = isNormal;
+                if (url_param == '/small') {
+                    size = "소형관";
+                }else if (url_param == '/middle') {
+                    size = "중형관";
+                }else {
+                    size = '대형관';
+                }
+                sizeCell.textContent = size;
+
+                imgLink.textContent = '확인하기';
+                imgLink.classList.add('cursor_pointer');
+                imgLink.onclick = function(){
+                    clickImage(this);
+                }
+                imgLink.setAttribute('value', inputDir + filename);
+
+                checkCell.appendChild(imgLink);
+
+                newRow.appendChild(nameCell);
+                newRow.appendChild(anomalCell);
+                newRow.appendChild(sizeCell);
+                newRow.appendChild(checkCell);
+
+                tBody.appendChild(newRow);
+                console.log(tBody);
+                tBody.insertRow(newRow);
+            }
+
             for(var filename in response){
                 if (response.hasOwnProperty(filename)) {
                     var isNormal = response[filename];
-                    console.log(isNormal);
                     filename = filename + '.png';
                     inputImages.push(inputDir + filename);
                     if ( isNormal == 1 ){
-                        outputImages.push("static/assets/img/normal.png");
+                        // outputImages.push("static/assets/img/normal.png");
+                        outputImages.push("정상");
                     }else{
                         outputImages.push(outputDir + filename);
                     }
-                    console.log(outputImages)
+                    addList(filename, isNormal, url_param);
                 }
             }
 
@@ -246,14 +299,27 @@ function anomaly_detect(url_param) {
             function displayImages() {
                 if (currentIndex < inputImages.length) {
                     var inputImage = document.createElement('img');
-                    var outputImage = document.createElement('img');
+
+                    inputImage.style.maxWidth='100%';
+                    inputImage.style.maxHeight='100%';
 
                     inputImage.src = inputImages[currentIndex];
-                    outputImage.src = outputImages[currentIndex];
 
+                    var outputValue = outputImages[currentIndex];
+                    if (outputValue == '정상') {
+                        var outputImage = document.createElement('span');
+                        outputImage.textContent = "정상입니다.";
+                    }else{
+                        var outputImage = document.createElement('img');
+                        outputImage.style.maxWidth='100%';
+                        outputImage.style.maxHeight='100%';
+
+                        outputImage.src = outputImages[currentIndex];
+                    }
                     // 이미지를 각각의 div에 추가합니다.
                     $('#input_body').empty().append(inputImage);
                     $('#result_body').empty().append(outputImage);
+
                     currentIndex++;
                 }
                 if (currentIndex < inputImages.length) {
@@ -262,8 +328,19 @@ function anomaly_detect(url_param) {
                 }
             }
 
-            // 초기 이미지 표시를 시작합니다.
             displayImages();
         }
     });
+}
+
+function clickImage(clickedElement) {
+    var imagePath = clickedElement.getAttribute('value');
+    var imageElement = document.createElement('img');
+    imageElement.style.maxWidth = '100%';
+    imageElement.style.maxHeight = '100%';
+    imageElement.src = imagePath;
+
+    var clickImgElement = document.getElementById('click_img');
+    clickImgElement.innerHTML = ''; // 이전 이미지를 지웁니다.
+    clickImgElement.appendChild(imageElement);
 }

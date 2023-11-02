@@ -59,36 +59,36 @@
                         <li class="breadcrumb-item active">불량 탐지할 관을 클릭해주세요.</li>
                     </ol>
                     <div class="row">
-                        <div class="col-xl-4 col-md-6" id="small_button" onclick="anomaly_detect('/small')">
-                            <div class="card bg-primary text-white mb-4">
+                        <div class="col-xl-4 col-md-6 cursor_pointer" id="small_button" onclick="anomaly_detect('/small')">
+                            <div class="card bg-info bg-gradient text-white mb-4">
                                 <div class="card-body">
                                     소형관
                                 </div>
-                                <div class="card-footer d-flex align-items-center justify-content-between">
+                                <div class="card-footer d-flex align-items-center justify-content-between bg-info">
                                     <div class="small text-white">
                                         클릭
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-4 col-md-6" id="middle_button" onclick="anomaly_detect('/middle')">
-                            <div class="card bg-warning text-white mb-4">
-                                <div class="card-body">
+                        <div class="col-xl-4 col-md-6 cursor_pointer" id="middle_button" onclick="anomaly_detect('/middle')">
+                            <div class="card bg-secondary bg-gradient text-white mb-4">
+                                <div class="card-body cursor_pointer">
                                     중형관
                                 </div>
-                                <div class="card-footer d-flex align-items-center justify-content-between">
+                                <div class="card-footer d-flex align-items-center justify-content-between bg-secondary">
                                     <div class="small text-white">
                                         클릭
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-4 col-md-6" id="big_button" onclick="anomaly_detect('/big')">
-                            <div class="card bg-success text-white mb-4">
-                                <div class="card-body">
+                        <div class="col-xl-4 col-md-6 cursor_pointer" id="big_button" onclick="anomaly_detect('/big')">
+                            <div class="card bg-danger bg-gradient text-white mb-4">
+                                <div class="card-body cursor_pointer">
                                     대형관
                                 </div>
-                                <div class="card-footer d-flex align-items-center justify-content-between">
+                                <div class="card-footer d-flex align-items-center justify-content-between bg-danger">
                                     <div class="small text-white">
                                         클릭
                                     </div>
@@ -102,7 +102,7 @@
                                 <div class="card-header" style="text-align: center;">
                                     Input
                                 </div>
-                                <div class="card-body" id="input_body">
+                                <div class="card-body" id="input_body" style="text-align: center; display: flex; justify-content: center;">
                                     <!-- script.js에서 나온 결과물 표시영역 -->
                                 </div>
                             </div>
@@ -110,12 +110,55 @@
                         <div class="col-xl-6">
                             <div class="card mb-4">
                                 <div class="card-header" style="text-align: center;">
-                                    Predict
+                                    Detection
                                 </div>
-                                <div class="card-body" id="result_body">
+                                <div class="card-body" id="result_body" style="text-align: center; display: flex; justify-content: center;">
                                     <!-- script.js에서 나온 결과물 표시영역 -->
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            파일 목록
+                        </div>
+                        <div class="card-body">
+                            <table id="datatablesSimple">
+                                <thead>
+                                    <tr>
+                                        <th>파일 이름</th>
+                                        <th>정상여부</th>
+                                        <th>크기</th>
+                                        <th>확인하기</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>파일 이름</th>
+                                        <th>정상/불량</th>
+                                        <th>크기</th>
+                                        <th>확인하기</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    <!-- 검사한 이미지들이 들어가는 공간-->
+                                    <tr style="display: none;">
+                                        <td>파일 이름이 표시됩니다.</td>
+                                        <td>정상여부가 표시됩니다.</td>
+                                        <td>중/소/대</td>
+                                        <td>클릭하면 이미지가 나타납니다.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            클릭한 이미지
+                        </div>
+                        <div class="card-body" id="click_img" style="text-align: center">
+
                         </div>
                     </div>
                 </div>

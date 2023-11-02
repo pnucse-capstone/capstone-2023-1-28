@@ -93,7 +93,7 @@ def combine_img(file_dir, file_groups):
             os.remove(os.path.join(file_dir,filename))
 
         # (리사이즈 왜곡이 심하다 싶으면 수정하기)
-        result_image = result_image.resize((512,512))
+        # result_image = result_image.resize((512,512))
         result_image.save(os.path.join(file_dir, f"{group_name}.png"))
 
 def run(size_url):
