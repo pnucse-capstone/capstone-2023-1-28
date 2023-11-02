@@ -1,4 +1,6 @@
 import os
+import shutil
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -72,7 +74,7 @@ class GradCam(torch.nn.Module):
         return
 
 
-def combine_img(file_dir, file_groups):
+def combine_img(file_dir, file_groups, final_dir):
     # if not os.path.exists(result_dir):
     #     os.makedirs(result_dir)
     for group_name, image_filenames in file_groups.items():
@@ -97,7 +99,7 @@ def combine_img(file_dir, file_groups):
 
         # (리사이즈 왜곡이 심하다 싶으면 수정하기)
         # result_image = result_image.resize((512,512))
-        result_image.save(os.path.join(file_dir, f"{group_name}.png"))
+        result_image.save(os.path.join(final_dir, f"{group_name}.png"))
 
 def run(size_url):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -108,9 +110,24 @@ def run(size_url):
     distance_dir = "./static/cutpaste/aver_distance/" + size_url + "/good"
     input_dir = "./static/cutpaste/datasets/" + size_url
     result_dir = './static/cutpaste/results/' + size_url
+    final_input_dir = './static/final/inputs/' + size_url
+    final_result_dir = './static/final/results/' + size_url
+
+
 
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
+    if not os.path.exists(final_input_dir):
+        os.makedirs(final_input_dir)
+    if not os.path.exists(final_result_dir):
+        os.makedirs(final_result_dir)
+
+    input_lst = []
+    for filename in os.listdir(input_dir):
+        input_lst.append(filename)
+    if len(input_lst) == 0:
+        print("비어있음")
+        return      #안되면 None 추가
 
     model = os.path.join(model_dir,os.listdir(model_dir)[0] if os.path.exists(model_dir) else None)
     if model_dir is None:
@@ -187,11 +204,7 @@ def run(size_url):
 
     ## 정상/결함 파일 분류를 위한 변수선언
     anomal_lst = []
-    input_lst = []
-    for filename in os.listdir(input_dir):
-        if filename in os.listdir(result_dir):
-            continue
-        input_lst.append(filename)
+
 
     for i in distances:
       if i < Good_value - dis_value or i > Good_value + dis_value:
@@ -273,15 +286,22 @@ def run(size_url):
                 result_dict[group] = 1
         print(result_dict)
         # 이미지 합치기
-        combine_img(input_dir, file_groups)
-        combine_img(result_dir, file_groups)
+        combine_img(input_dir, file_groups, final_input_dir)
+        combine_img(result_dir, file_groups, final_result_dir)
     else:
         for i in range(len(anomal_lst)):
-
             if anomal_lst[i]:
                 result_dict[input_lst[i].rsplit('.',1)[0]] = 1
             else:
                 result_dict[input_lst[i].rsplit('.',1)[0]] = 0
+        for filename in os.listdir(input_dir):
+            src_path = os.path.join(input_dir, filename)
+            dst_path = os.path.join(final_input_dir, filename)
+            shutil.move(src_path, dst_path)
+        for filename in os.listdir(result_dir):
+            src_path = os.path.join(result_dir, filename)
+            dst_path = os.path.join(final_result_dir, filename)
+            shutil.move(src_path, dst_path)
     # todo : result_dict를 사용해서 해당 key값이 불량이 아니면 출력하기.
     # result_dict에 해당 파일 불량 여부.
     print(result_dict)

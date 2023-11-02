@@ -216,8 +216,8 @@ function anomaly_detect(url_param) {
     var inputImages = [];
     var outputImages = [];
     var originDir = 'static/temp' + url_param + '/';
-    var inputDir = 'static/cutpaste/datasets' + url_param + '/';
-    var outputDir = 'static/cutpaste/results' + url_param + '/';
+    var inputDir = 'static/final/inputs' + url_param + '/';
+    var outputDir = 'static/final/results' + url_param + '/';
     var tList = document.getElementById('datatablesSimple');
     var tBody = tList.getElementsByTagName('tbody')[0]
 

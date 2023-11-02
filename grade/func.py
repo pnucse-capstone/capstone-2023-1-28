@@ -348,6 +348,12 @@ def expand_img(size_url):
     img_dir = './static/results/' + size_url + '/png'  # img
     npy_dir = './static/results/' + size_url + '/numpy'  # numpy
     result_dir = './static/cutpaste/datasets/' + size_url
+    final_dir = './static/final/inputs/' + size_url         #중복 처리용
+    final_lst = []
+
+    if os.path.exists(final_dir):
+        final_lst = os.listdir(final_dir)
+        print("중복 존재 : ", final_lst)
 
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
@@ -358,12 +364,18 @@ def expand_img(size_url):
     npy_files = [os.path.join(npy_dir, filename) for filename in os.listdir(npy_dir) if
                  filename.endswith('.npy') and filename.startswith('output_')]
 
+
     # # 파일 목록을 정렬하여 순서대로 처리
     # png_files.sort()
     # npy_files.sort()
 
     # A 폴더와 B 폴더의 파일 목록을 동시에 처리
     for png_file, npy_file in zip(png_files, npy_files):
+        print(os.path.basename(png_file))
+        print(final_lst)
+        if os.path.basename(png_file) in final_lst:
+            continue            #중복처리
+
         mask = np.load(npy_file)
 
         # 원본 이미지 로드 (PNG 형식)

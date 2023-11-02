@@ -67,9 +67,20 @@ def anomal():
 
 @app.route('/anomaly/<size_url>', methods=['GET', 'POST'])
 def anomal_detect(size_url):
+    print("전처리")
     func.expand_img(size_url)
+    print("모델 구동")
     answer = run_cupaste_resnet.run(size_url)
-    return jsonify(answer)
+
+    print("db에 넣기")
+    if answer is not None:
+        final_insert_db(size_url, answer)
+
+    print("DB에서 데이터 가져오기")
+    answer_dict = final_import_img_db()
+    print(answer_dict)
+
+    return jsonify(answer_dict)
 
 if __name__ == '__main__':
     app.run()
@@ -140,3 +151,48 @@ def import_img_db(size_url):
     conn.close()
 
     return images
+
+
+def final_insert_db(size_url, final_dict):
+    input_tableName = 'results'
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    try:
+        for key, value in final_dict.items():
+            image_name = key
+            # input_image_dir = final_input_dir + image_name
+            is_normal = value
+
+            query = "INSERT INTO {} (size, image_name, is_normal) VALUES (%s, %s, %s)".format(input_tableName)
+            cursor.execute(query, (size_url, image_name, is_normal))
+
+            conn.commit()
+    except Exception as e:
+        print("오류발생")
+    finally:
+        cursor.close()
+        conn.close()
+
+def final_import_img_db():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    table_name = 'results'
+
+    # SQL 쿼리를 사용하여 필요한 열을 가져옵니다.
+    query = f"SELECT image_name, is_normal FROM {table_name}"
+    cursor.execute(query)
+
+    # 결과를 딕셔너리로 변환
+    image_dict = {}
+    for row in cursor.fetchall():
+        image_name, is_normal = row
+        image_dict[image_name] = is_normal
+
+    # 연결을 닫습니다.
+    cursor.close()
+    conn.close()
+
+    return image_dict
