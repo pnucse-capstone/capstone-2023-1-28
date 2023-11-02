@@ -35,13 +35,13 @@ from cutpaste.utils import str2bool
 
 class MVTecAT(Dataset):
 
-    def __init__(self, root_dir, size, transform=None, mode="train"):
+    def __init__(self, root_dir, size, transform=None, mode="train", dupli_dir=None):
         self.root_dir = Path(root_dir)
         self.transform = transform
         self.mode = mode
         self.size = size
+        self.image_names = []
         self.image_names = list(self.root_dir.glob("*.png"))
-        print(self.image_names)
 
     def __len__(self):
         return len(self.image_names)
@@ -71,6 +71,31 @@ class GradCam(torch.nn.Module):
         return
 
 
+def combine_img(file_dir, file_groups):
+    for group_name, image_filenames in file_groups.items():
+        # 각 그룹 내의 이미지를 가로 방향으로 이어붙여 빈 이미지를 생성합니다.
+        total_width = 0
+        max_height = 0
+
+        for filename in image_filenames:
+            image = Image.open(os.path.join(file_dir,filename))
+            total_width += image.width
+            max_height = max(max_height, image.height)
+
+        result_image = Image.new("RGB", (total_width, max_height))
+
+        # 이미지를 오른쪽으로 이어붙입니다.
+        x_offset = 0
+        for filename in image_filenames:
+            image = Image.open(os.path.join(file_dir,filename))
+            result_image.paste(image, (x_offset, 0))
+            x_offset += image.width
+            os.remove(os.path.join(file_dir,filename))
+
+        # (리사이즈 왜곡이 심하다 싶으면 수정하기)
+        result_image = result_image.resize((512,512))
+        result_image.save(os.path.join(file_dir, f"{group_name}.png"))
+
 def run(size_url):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -84,10 +109,9 @@ def run(size_url):
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
 
-    print(os.listdir(model_dir))
     model = os.path.join(model_dir,os.listdir(model_dir)[0] if os.path.exists(model_dir) else None)
     if model_dir is None:
-        print("모델 넣어")
+        print("가중치를 넣어주세요.")
         return
     #모델 로드
     head_layer = 1
@@ -112,10 +136,8 @@ def run(size_url):
     test_transform.transforms.append(transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                                         std=[0.229, 0.224, 0.225]))
 
-
     dataloader_train = DataLoader(MVTecAT(distance_dir, size, transform = test_transform, mode="test"), batch_size, shuffle=False, num_workers=0)
-    dataloader_test = DataLoader(MVTecAT(input_dir, size, transform = test_transform, mode="test"), batch_size, shuffle=False, num_workers=0)
-
+    dataloader_test = DataLoader(MVTecAT(input_dir, size, transform = test_transform, mode="test", dupli_dir=result_dir), batch_size, shuffle=False, num_workers=0)
 
     #트레인 임베딩 제작
     trains = []
@@ -145,30 +167,44 @@ def run(size_url):
 
     distances = density.predict(embeds)
 
-    #딱 맞게 하면 안되고 여유를 조금 주어야 한다
-    #소형관 정상 이미지들의 평균 거리 = 20.5350, 10.5 또는 4.5
-    #중형관 정상 이미지들의 평균 거리 = 20.9062, 6.5
+    # 딱 맞게 하면 안되고 여유를 조금 주어야 한다
+    # 소형관 정상 이미지들의 평균 거리 = 20.5350, 10.5 또는 4.5
+    # 중형관 정상 이미지들의 평균 거리 = 20.9062, 6.5
     # 대형관 정상 이미지들의 평균 거리 = 22.5396, 9.5
 
-    Good_value = 21.0671
-    dis_value = 10.5
+    if size_url == 'small':
+        Good_value = 20.5350
+        dis_value = 4.5
+    elif size_url == 'middle':
+        Good_value = 20.9062
+        dis_value = 6.5
+    else:
+        Good_value = 22.5396
+        dis_value = 9.5
+
+    ## 정상/결함 파일 분류를 위한 변수선언
+    anomal_lst = []
+    input_lst = []
+    for filename in os.listdir(input_dir):
+        if filename in os.listdir(result_dir):
+            continue
+        input_lst.append(filename)
 
     for i in distances:
       if i < Good_value - dis_value or i > Good_value + dis_value:
         print("비정상,", i)
+        anomal_lst.append(0)
       else:
         print("정상,", i)
+        anomal_lst.append(1)
 
 
-    # GradCam 모델 초기화
+    ## GradCam 모델 초기화
     name_layer = 'resnet18'
     gradcam = GradCam(model, name_layer)
 
-
-    for filename in os.listdir(input_dir):
-        # 중복 무시
-        if filename in os.listdir(result_dir):
-            continue
+    ## 모델 돌리기
+    for filename in input_lst:
         if filename.endswith(".jpg") or filename.endswith(".png"):
             input_path = os.path.join(input_dir, filename)
 
@@ -213,3 +249,35 @@ def run(size_url):
 
             # 저장
             cv2.imwrite(os.path.join(result_dir, filename),images_show)
+
+    ## 그룹별로 분류해서 비정상 /정상 판단 및 이미지 붙이기
+    # 여기에 그룹별 정상/비정상이 담김
+    result_dict = {}
+
+    if size_url != 'small':
+        anomal_groups = defaultdict(list)
+        file_groups = defaultdict(list)
+        for filename, anom in zip(input_lst, anomal_lst):
+            common_part = filename.rsplit('_', 1)[0]
+            anomal_groups[common_part].append(anom)
+            file_groups[common_part].append(filename)
+
+        for group, anomalies in anomal_groups.items():
+            if 0 in anomalies:
+                result_dict[group] = 0
+            else:
+                result_dict[group] = 1
+        print(result_dict)
+        # 이미지 합치기
+        combine_img(input_dir, file_groups)
+        combine_img(result_dir, file_groups)
+    else:
+        for i in range(len(anomal_lst)):
+            if anomal_lst[i]:
+                result_dict[input_lst[i]] = 1
+            else:
+                result_dict[input_lst[i]] = 0
+    # todo : result_dict를 사용해서 해당 key값이 불량이 아니면 출력하기.
+    # result_dict에 해당 파일 불량 여부.
+
+    return result_dict

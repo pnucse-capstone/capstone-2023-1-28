@@ -210,6 +210,8 @@ function anomaly_detect(url_param) {
     var currentIndex = 0;  // 현재 표시 중인 이미지의 인덱스
     var inputImages = [];
     var outputImages = [];
+    var inputDir = 'static/cutpaste/datasets' + url_param + '/';
+    var outputDir = 'static/cutpaste/results' + url_param + '/';
 
     // 이미지 표시 타이머 중지
     clearTimeout(imageDisplayTimer);
@@ -225,19 +227,20 @@ function anomaly_detect(url_param) {
             inputImages = [];
             outputImages = [];
 
-            // 응답 이미지를 배열에 저장합니다.
-            response.forEach(function(imagePath) {
-                // 역슬래시를 슬래시로 교체합니다.
-                imagePath = imagePath.replace(/\\/g, '/');
-                imagesToDisplay.push(imagePath);
-
-                // input과 output 이미지를 분류합니다.
-                if (imagePath.startsWith('static/results' + url_param + '/png/input_')) {
-                    inputImages.push(imagePath);
-                } else if (imagePath.startsWith('static/contour' + url_param + '/png/output_')) {
-                    outputImages.push(imagePath);
+            for(var filename in response){
+                if (response.hasOwnProperty(filename)) {
+                    var isNormal = response[filename];
+                    console.log(isNormal);
+                    filename = filename + '.png';
+                    inputImages.push(inputDir + filename);
+                    if ( isNormal == 1 ){
+                        outputImages.push("static/assets/img/normal.png");
+                    }else{
+                        outputImages.push(outputDir + filename);
+                    }
+                    console.log(outputImages)
                 }
-            });
+            }
 
             // 이미지를 표시하는 함수 설정
             function displayImages() {

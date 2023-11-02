@@ -68,8 +68,8 @@ def anomal():
 @app.route('/anomaly/<size_url>', methods=['GET', 'POST'])
 def anomal_detect(size_url):
     func.expand_img(size_url)
-    run_cupaste_resnet.run(size_url)
-    return
+    answer = run_cupaste_resnet.run(size_url)
+    return jsonify(answer)
 
 if __name__ == '__main__':
     app.run()

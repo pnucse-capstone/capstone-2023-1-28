@@ -56,11 +56,12 @@ def unet_model_run(size_url):
     result_dir = 'static/results/' + size_url
 
     logging.info("모델 동작중")
-    if not os.path.exists(result_dir):
-        logging.info("폴더생성")
-        os.makedirs(os.path.join(result_dir, 'png'))
-        logging.info("폴더생성2")
-        os.makedirs(os.path.join(result_dir, 'numpy'))
+    png_path = os.path.join(result_dir, 'png')
+    npy_path = os.path.join(result_dir, 'numpy')
+    if not os.path.exists(png_path):
+        os.makedirs(png_path)
+    if not os.path.exists(npy_path):
+        os.makedirs(npy_path)
 
     # 기타 설정
     lr = 1e-3
@@ -350,14 +351,13 @@ def expand_img(size_url):
 
     # A 폴더와 B 폴더의 파일 목록 가져오기
     png_files = [os.path.join(img_dir, filename) for filename in os.listdir(img_dir) if
-                 filename.endswith('.png') and filename.startswith('output_')]
+                 filename.endswith('.png') and filename.startswith('input_')]
     npy_files = [os.path.join(npy_dir, filename) for filename in os.listdir(npy_dir) if
                  filename.endswith('.npy') and filename.startswith('output_')]
 
-    # 파일 목록을 정렬하여 순서대로 처리
-    png_files.sort()
-    npy_files.sort()
-
+    # # 파일 목록을 정렬하여 순서대로 처리
+    # png_files.sort()
+    # npy_files.sort()
 
     # A 폴더와 B 폴더의 파일 목록을 동시에 처리
     for png_file, npy_file in zip(png_files, npy_files):
