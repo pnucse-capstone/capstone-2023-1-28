@@ -44,7 +44,6 @@ class MVTecAT(Dataset):
         self.image_names = list(self.root_dir.glob("*.png"))
 
 
-
     def __len__(self):
         return len(self.image_names)
 
@@ -278,10 +277,11 @@ def run(size_url):
         combine_img(result_dir, file_groups)
     else:
         for i in range(len(anomal_lst)):
+
             if anomal_lst[i]:
-                result_dict[input_lst[i]] = 1
+                result_dict[input_lst[i].rsplit('.',1)[0]] = 1
             else:
-                result_dict[input_lst[i]] = 0
+                result_dict[input_lst[i].rsplit('.',1)[0]] = 0
     # todo : result_dict를 사용해서 해당 key값이 불량이 아니면 출력하기.
     # result_dict에 해당 파일 불량 여부.
     print(result_dict)

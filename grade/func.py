@@ -46,7 +46,7 @@ def preprocesse_image(size_url):
             cv2.imwrite(output_path, cropped_image)
         # if size_url == 'big':                                 전처리 하는거 보여줄려고 이랬는데 굳이 하지말자
         new_name = os.path.join(temp_dir, 'input_' + filename)
-        shutil.move(input_dir + filename, new_name)         #템프로 옮기기
+        shutil.copy(input_dir + filename, new_name)         #템프로 복사하기
         # else:
         # os.remove(input_dir+filename)             #1 수정
 
