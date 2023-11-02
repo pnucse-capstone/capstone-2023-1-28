@@ -353,7 +353,6 @@ def expand_img(size_url):
 
     if os.path.exists(final_dir):
         final_lst = os.listdir(final_dir)
-        print("중복 존재 : ", final_lst)
 
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
@@ -371,9 +370,10 @@ def expand_img(size_url):
 
     # A 폴더와 B 폴더의 파일 목록을 동시에 처리
     for png_file, npy_file in zip(png_files, npy_files):
-        print(os.path.basename(png_file))
-        print(final_lst)
-        if os.path.basename(png_file) in final_lst:
+        dupli_name = os.path.basename(png_file)
+        if size_url != 'small':
+            dupli_name = dupli_name.rsplit('_', 1)[0] + '.png'
+        if dupli_name in final_lst:
             continue            #중복처리
 
         mask = np.load(npy_file)

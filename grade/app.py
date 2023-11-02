@@ -77,7 +77,7 @@ def anomal_detect(size_url):
         final_insert_db(size_url, answer)
 
     print("DB에서 데이터 가져오기")
-    answer_dict = final_import_img_db()
+    answer_dict = final_import_img_db(size_url)
     print(answer_dict)
 
     return jsonify(answer_dict)
@@ -175,14 +175,14 @@ def final_insert_db(size_url, final_dict):
         cursor.close()
         conn.close()
 
-def final_import_img_db():
+def final_import_img_db(size_url):
     conn = mysql.connect()
     cursor = conn.cursor()
 
     table_name = 'results'
 
     # SQL 쿼리를 사용하여 필요한 열을 가져옵니다.
-    query = f"SELECT image_name, is_normal FROM {table_name}"
+    query = f"SELECT image_name, is_normal FROM {table_name} WHERE size = '{size_url}'"
     cursor.execute(query)
 
     # 결과를 딕셔너리로 변환
