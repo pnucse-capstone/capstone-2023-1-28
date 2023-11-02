@@ -25,7 +25,9 @@ def preprocesse_image(size_url):
         for filename in input_files:
             src = input_dir + filename
             des = result_dir + filename
-            shutil.move(src,des)
+            new_name = os.path.join(temp_dir, 'input_' + filename)
+            shutil.copy(src,des)
+            shutil.move(src,new_name)
         return
 
     cut_width = 1000
@@ -46,7 +48,7 @@ def preprocesse_image(size_url):
             cv2.imwrite(output_path, cropped_image)
         # if size_url == 'big':                                 전처리 하는거 보여줄려고 이랬는데 굳이 하지말자
         new_name = os.path.join(temp_dir, 'input_' + filename)
-        shutil.copy(input_dir + filename, new_name)         #템프로 복사하기
+        shutil.move(input_dir + filename, new_name)         #템프로 복사하기
         # else:
         # os.remove(input_dir+filename)             #1 수정
 
@@ -270,7 +272,7 @@ def check_for_new_files():
 # 이미지 전처리 -- big만 가능하니까 그외에는 app.py에서 막기
 def different(selectValue, threshValue = 801, kernelValue = 23):
     # thresh : 쓰레스홀드, erode : 이로딩, dilation : 딜레이션, final : 최종
-    image_dir = "static/uploads/big"        # 새로운 이미지 올라온거
+    image_dir = "static/temp/big"        # 새로운 이미지 올라온거         #temp 수정 필요
     result_dir = "static/different"  # 이미지를 저장할 디렉토리 경로
     answer = []
 

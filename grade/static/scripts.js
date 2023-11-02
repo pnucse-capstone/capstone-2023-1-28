@@ -249,8 +249,10 @@ function anomaly_detect(url_param) {
                 nameCell.textContent = filename;
                 if( isNormal == 1 ){
                     isNormal = "정상";
+                    anomalCell.style.color = "blue";
                 }else {
                     isNormal = "비정상";
+                    anomalCell.style.color = "red";
                 }
                 anomalCell.textContent = isNormal;
                 if (url_param == '/small') {
