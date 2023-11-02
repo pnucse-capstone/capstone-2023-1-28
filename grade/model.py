@@ -9,22 +9,20 @@ db = SQLAlchemy(app)
 
 
 class Images(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
     size = db.Column(db.String(255), nullable=False)
     image_name = db.Column(db.String(255), nullable=False, unique=True)
     image_dir = db.Column(db.String(255), nullable=False)
 
 class Outputs(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
     size = db.Column(db.String(255), nullable=False)
     image_name = db.Column(db.String(255), nullable=False, unique=True)
     image_dir = db.Column(db.String(255), nullable=False)
 
-class Contours(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+class Results(db.Model):
     size = db.Column(db.String(255), nullable=False)
     image_name = db.Column(db.String(255), nullable=False, unique=True)
     image_dir = db.Column(db.String(255), nullable=False)
+    is_normal = db.Column(db.Boolean, nullable=False)
 
 def create():
     db.create_all()

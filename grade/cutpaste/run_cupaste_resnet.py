@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import easydict
 import pandas as pd
+from pathlib import WindowsPath
 
 from typing import Iterable, List, Optional
 from PIL import Image
@@ -35,13 +36,14 @@ from cutpaste.utils import str2bool
 
 class MVTecAT(Dataset):
 
-    def __init__(self, root_dir, size, transform=None, mode="train", dupli_dir=None):
+    def __init__(self, root_dir, size, transform=None, mode="train"):
         self.root_dir = Path(root_dir)
         self.transform = transform
         self.mode = mode
         self.size = size
-        self.image_names = []
         self.image_names = list(self.root_dir.glob("*.png"))
+
+
 
     def __len__(self):
         return len(self.image_names)
@@ -72,6 +74,8 @@ class GradCam(torch.nn.Module):
 
 
 def combine_img(file_dir, file_groups):
+    # if not os.path.exists(result_dir):
+    #     os.makedirs(result_dir)
     for group_name, image_filenames in file_groups.items():
         # 각 그룹 내의 이미지를 가로 방향으로 이어붙여 빈 이미지를 생성합니다.
         total_width = 0
@@ -137,7 +141,7 @@ def run(size_url):
                                                         std=[0.229, 0.224, 0.225]))
 
     dataloader_train = DataLoader(MVTecAT(distance_dir, size, transform = test_transform, mode="test"), batch_size, shuffle=False, num_workers=0)
-    dataloader_test = DataLoader(MVTecAT(input_dir, size, transform = test_transform, mode="test", dupli_dir=result_dir), batch_size, shuffle=False, num_workers=0)
+    dataloader_test = DataLoader(MVTecAT(input_dir, size, transform = test_transform, mode="test"), batch_size, shuffle=False, num_workers=0)
 
     #트레인 임베딩 제작
     trains = []
@@ -252,6 +256,7 @@ def run(size_url):
 
     ## 그룹별로 분류해서 비정상 /정상 판단 및 이미지 붙이기
     # 여기에 그룹별 정상/비정상이 담김
+    # 중복처리 방지 여기서 해야하나?
     result_dict = {}
 
     if size_url != 'small':
@@ -279,5 +284,5 @@ def run(size_url):
                 result_dict[input_lst[i]] = 0
     # todo : result_dict를 사용해서 해당 key값이 불량이 아니면 출력하기.
     # result_dict에 해당 파일 불량 여부.
-
+    print(result_dict)
     return result_dict

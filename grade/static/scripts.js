@@ -215,6 +215,7 @@ function anomaly_detect(url_param) {
     var currentIndex = 0;  // 현재 표시 중인 이미지의 인덱스
     var inputImages = [];
     var outputImages = [];
+    var originDir = 'static/temp' + url_param + '/';
     var inputDir = 'static/cutpaste/datasets' + url_param + '/';
     var outputDir = 'static/cutpaste/results' + url_param + '/';
     var tList = document.getElementById('datatablesSimple');
@@ -266,7 +267,8 @@ function anomaly_detect(url_param) {
                 imgLink.onclick = function(){
                     clickImage(this);
                 }
-                imgLink.setAttribute('value', inputDir + filename);
+                imgLink.setAttribute('value1', inputDir + filename);
+                imgLink.setAttribute('value2', originDir + filename);
 
                 checkCell.appendChild(imgLink);
 
@@ -334,13 +336,26 @@ function anomaly_detect(url_param) {
 }
 
 function clickImage(clickedElement) {
-    var imagePath = clickedElement.getAttribute('value');
-    var imageElement = document.createElement('img');
-    imageElement.style.maxWidth = '100%';
-    imageElement.style.maxHeight = '100%';
-    imageElement.src = imagePath;
+    var imagePath1 = clickedElement.getAttribute('value1');
+    var imagePath2 = clickedElement.getAttribute('value2');
 
-    var clickImgElement = document.getElementById('click_img');
-    clickImgElement.innerHTML = ''; // 이전 이미지를 지웁니다.
-    clickImgElement.appendChild(imageElement);
+    var imageElement1 = document.createElement('img');
+    imageElement1.style.maxWidth = '100%';
+    imageElement1.style.maxHeight = '100%';
+    imageElement1.src = imagePath1;
+
+    var imageElement2 = document.createElement('img');
+    imageElement2.style.maxWidth = '100%';
+    imageElement2.style.maxHeight = '100%';
+    imageElement2.src = imagePath2;
+
+    var clickImgElement1 = document.getElementById('click_expand');
+    clickImgElement1.innerHTML = ''; // 이전 이미지를 지웁니다.
+    clickImgElement1.appendChild(imageElement1);
+
+    var clickImgElement2 = document.getElementById('click_origin');
+    clickImgElement2.innerHTML = ''; // 이전 이미지를 지웁니다.
+    clickImgElement2.appendChild(imageElement2);
+
+
 }

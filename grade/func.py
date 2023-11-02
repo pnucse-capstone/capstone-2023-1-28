@@ -11,12 +11,12 @@ import myUnet
 def preprocesse_image(size_url):
     input_dir = "static/uploads/" + size_url + '/'
     result_dir = "static/preprocessing/" + size_url + '/'
-    temp_dir = "static/temp/"
+    temp_dir = "static/temp/" + size_url
 
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
-    # if not os.path.exists(temp_dir):
-    #     os.makedirs(temp_dir)
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
 
     input_files = os.listdir(input_dir)
     already_output_files = os.listdir(result_dir)   # 중복처리 방지용
@@ -45,7 +45,8 @@ def preprocesse_image(size_url):
             output_path = os.path.join(result_dir, output_filename)
             cv2.imwrite(output_path, cropped_image)
         # if size_url == 'big':                                 전처리 하는거 보여줄려고 이랬는데 굳이 하지말자
-        #     shutil.move(input_dir + filename, temp_dir)
+        new_name = os.path.join(temp_dir, 'input_' + filename)
+        shutil.move(input_dir + filename, new_name)         #템프로 옮기기
         # else:
         # os.remove(input_dir+filename)             #1 수정
 
